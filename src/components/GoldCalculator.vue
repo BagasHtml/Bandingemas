@@ -13,8 +13,8 @@ import {
 import { Input } from '@/components/ui/input'
 
 /*
- * Kalkulator simulasi (DESIGN.md 5.5): kontainer gelap, fokus interaksi.
- * Kalkulasi instan dari harga nyata sumber terpilih.
+ * Kalkulator simulasi (DESIGN.md 5.5): fokus interaksi, mengikuti tema
+ * terang/gelap. Kalkulasi instan dari harga nyata sumber terpilih.
  */
 const { goldSpots, isLoading } = useComparison()
 
@@ -49,20 +49,20 @@ const spreadLoss = computed(() => {
 </script>
 
 <template>
-  <section class="rounded-2xl bg-[#111315] p-6 text-[#f9fafb] sm:p-8 dark:bg-black">
+  <section class="rounded-2xl border bg-card p-6 sm:p-8">
     <h2 class="text-lg font-bold tracking-[-0.02em]">Kalkulator Simulasi Emas</h2>
-    <p class="mt-1 text-sm text-[#9ca3af]">
+    <p class="mt-1 text-sm text-muted-foreground">
       Hitung estimasi beli dan proyeksi buyback dari harga perantara pilihanmu.
     </p>
 
     <div v-if="isLoading" aria-busy="true" class="mt-6">
       <span class="sr-only">Memuat kalkulator...</span>
       <div class="grid gap-4 sm:grid-cols-2">
-        <Skeleton class="h-16 bg-[#26292d]" />
-        <Skeleton class="h-16 bg-[#26292d]" />
+        <Skeleton class="h-16" />
+        <Skeleton class="h-16" />
       </div>
-      <div class="mt-6 grid gap-4 border-t border-[#2a2e33] pt-6 sm:grid-cols-3">
-        <Skeleton v-for="i in 3" :key="i" class="h-14 bg-[#26292d]" />
+      <div class="mt-6 grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
+        <Skeleton v-for="i in 3" :key="i" class="h-14" />
       </div>
     </div>
 
@@ -71,7 +71,7 @@ const spreadLoss = computed(() => {
         <div>
           <label
             for="calc-grams"
-            class="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#9ca3af]"
+            class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground"
           >
             Gramasi
           </label>
@@ -82,16 +82,18 @@ const spreadLoss = computed(() => {
             min="0"
             step="0.5"
             inputmode="decimal"
-            class="mt-2 border-[#2a2e33] bg-[#1a1d20] tabular-nums text-[#f9fafb] placeholder:text-[#6b7280]"
+            class="mt-2 h-11 tabular-nums sm:h-9"
             placeholder="contoh: 10"
           />
         </div>
         <div>
-          <label class="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#9ca3af]">
+          <label
+            class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground"
+          >
             Acuan harga
           </label>
           <Select v-model="selectedSource">
-            <SelectTrigger class="mt-2 w-full border-[#2a2e33] bg-[#1a1d20] text-[#f9fafb]">
+            <SelectTrigger class="mt-2 h-11 w-full sm:h-9">
               <SelectValue :placeholder="activeSpot.displayName" />
             </SelectTrigger>
             <SelectContent>
@@ -103,15 +105,15 @@ const spreadLoss = computed(() => {
         </div>
       </div>
 
-      <dl class="mt-6 grid gap-4 border-t border-[#2a2e33] pt-6 sm:grid-cols-3">
+      <dl class="mt-6 grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
         <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#9ca3af]">
+          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
             Estimasi total beli
           </dt>
           <dd class="mt-1 text-xl font-bold tabular-nums sm:text-2xl">
             {{ totalBuy === null ? '-' : formatRupiah(totalBuy) }}
           </dd>
-          <p class="mt-1 text-xs text-[#9ca3af]">
+          <p class="mt-1 text-xs text-muted-foreground">
             {{
               gramCount === null
                 ? 'masukkan gramasi'
@@ -120,16 +122,16 @@ const spreadLoss = computed(() => {
           </p>
         </div>
         <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#9ca3af]">
+          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
             Proyeksi buyback bersih
           </dt>
           <dd
             class="mt-1 text-xl font-bold tabular-nums sm:text-2xl"
-            :class="netBuyback === null ? '' : 'text-[#c89922]'"
+            :class="netBuyback === null ? '' : 'text-gold-strong'"
           >
             {{ netBuyback === null ? 'tidak tersedia' : formatRupiah(netBuyback) }}
           </dd>
-          <p v-if="netBuyback !== null" class="mt-1 text-xs text-[#9ca3af]">
+          <p v-if="netBuyback !== null" class="mt-1 text-xs text-muted-foreground">
             {{
               gramCount === null
                 ? ''
@@ -138,24 +140,24 @@ const spreadLoss = computed(() => {
           </p>
         </div>
         <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-[#9ca3af]">
+          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
             Selisih beli vs buyback
           </dt>
           <dd class="mt-1 text-xl font-bold tabular-nums sm:text-2xl">
             {{ spreadLoss === null ? '-' : formatRupiah(spreadLoss) }}
           </dd>
-          <p class="mt-1 text-xs text-[#9ca3af]">perkiraan biaya likuidasi</p>
+          <p class="mt-1 text-xs text-muted-foreground">perkiraan biaya likuidasi</p>
         </div>
       </dl>
 
-      <p class="mt-6 text-xs text-[#9ca3af]">
+      <p class="mt-6 text-xs text-muted-foreground">
         Simulasi berdasarkan harga {{ activeSpot.displayName }} tanggal
         {{ activeSpot.recordedDate }}. Angka riil dapat berbeda karena ongkos buat, pajak, dan
         kebijakan masing-masing perantara.
       </p>
     </template>
 
-    <p v-else class="mt-6 text-sm text-[#9ca3af]">
+    <p v-else class="mt-6 text-sm text-muted-foreground">
       Harga perantara sedang tidak tersedia, kalkulator belum bisa dihitung.
     </p>
   </section>

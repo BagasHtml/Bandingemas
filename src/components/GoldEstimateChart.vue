@@ -101,22 +101,22 @@ const lastRecorded = computed(() => goldSpots.value[0]?.recordedDate ?? null)
           </div>
 
           <div class="space-y-2.5">
-            <div v-for="spot in rows" :key="spot.source" class="flex items-center gap-3">
+            <div v-for="spot in rows" :key="spot.source" class="flex items-center gap-2 sm:gap-3">
               <RouterLink
                 :to="`/sumber/${spot.source}`"
-                class="w-28 shrink-0 truncate text-xs font-medium underline-offset-4 hover:underline sm:w-36 sm:text-sm"
+                class="w-20 shrink-0 truncate text-xs font-medium underline-offset-4 hover:underline sm:w-36 sm:text-sm"
               >
                 {{ spot.displayName }}
               </RouterLink>
 
-              <div class="relative h-6 flex-1">
+              <div class="relative h-5 flex-1 sm:h-6">
                 <div
                   class="absolute inset-y-0 left-0 origin-left rounded-md bg-gold/85 transition-[width] duration-200 ease-out bar-grow"
                   :style="{ width: widthOf(spot.pricePerGram) }"
                 />
               </div>
 
-              <span class="w-28 shrink-0 text-right text-sm font-semibold tabular-nums sm:w-32">
+              <span class="w-24 shrink-0 text-right text-xs font-semibold tabular-nums sm:w-32 sm:text-sm">
                 {{ formatRupiah(spot.pricePerGram) }}
               </span>
             </div>

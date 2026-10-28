@@ -110,54 +110,60 @@ function widthOf(pct: number): string {
         role="img"
         :aria-label="`Peringkat biaya main lagi ${material === 'gold' ? 'emas' : 'perak'} dari ${rows.length} perantara, terbaik ${rows[0]?.spot.displayName ?? ''}`"
       >
-        <div class="space-y-2.5">
+        <div class="space-y-5">
           <div
             v-for="(row, index) in rows"
             :key="row.spot.source"
-            class="flex items-center gap-3"
           >
-            <span class="w-5 shrink-0 text-right text-xs font-semibold tabular-nums text-muted-foreground">
-              {{ index + 1 }}
-            </span>
+            <div class="flex items-center gap-2.5">
+              <span class="w-4 shrink-0 text-right text-xs font-semibold tabular-nums text-muted-foreground">
+                {{ index + 1 }}
+              </span>
 
-            <img
-              v-if="LOGOS[row.spot.source]"
-              :src="LOGOS[row.spot.source]"
-              :alt="`Logo ${row.spot.displayName}`"
-              class="size-8 shrink-0 rounded-full border border-border bg-white object-contain p-0.5"
-              loading="lazy"
-            />
-            <span
-              v-else
-              class="flex size-8 shrink-0 items-center justify-center rounded-full bg-gold-surface text-[10px] font-bold text-gold-strong ring-1 ring-gold-border"
-            >
-              {{ initials(row.spot.displayName) }}
-            </span>
+              <img
+                v-if="LOGOS[row.spot.source]"
+                :src="LOGOS[row.spot.source]"
+                :alt="`Logo ${row.spot.displayName}`"
+                class="size-8 shrink-0 rounded-full border border-border bg-white object-contain p-0.5"
+                loading="lazy"
+              />
+              <span
+                v-else
+                class="flex size-8 shrink-0 items-center justify-center rounded-full bg-gold-surface text-[10px] font-bold text-gold-strong ring-1 ring-gold-border"
+              >
+                {{ initials(row.spot.displayName) }}
+              </span>
 
-            <RouterLink
-              :to="`/sumber/${row.spot.source}`"
-              class="w-24 shrink-0 truncate text-xs font-medium underline-offset-4 hover:underline sm:w-32 sm:text-sm"
-            >
-              {{ row.spot.displayName }}
-              <span v-if="index === 0" class="block text-[10px] font-semibold text-gold-strong">
+              <RouterLink
+                :to="`/sumber/${row.spot.source}`"
+                class="min-w-0 flex-1 truncate text-sm font-medium underline-offset-4 hover:underline"
+              >
+                {{ row.spot.displayName }}
+              </RouterLink>
+
+              <span
+                v-if="index === 0"
+                class="hidden shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold-strong sm:inline"
+              >
                 paling likuid
               </span>
-            </RouterLink>
 
-            <div class="relative h-6 flex-1">
+              <div class="shrink-0 text-right">
+                <p class="text-sm font-bold tabular-nums">{{ formatPercent(row.pct) }}</p>
+                <p class="text-[10px] tabular-nums text-muted-foreground">
+                  {{ formatRupiah(row.cost) }}/gram
+                </p>
+              </div>
+            </div>
+
+            <!-- Bar selebar baris: panjang = besar biaya likuidasi -->
+            <div class="ml-6 mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
               <div
-                class="absolute inset-y-0 left-0 origin-left rounded-md transition-[width] duration-200 ease-out bar-grow"
-                :class="material === 'gold' ? 'bg-gold/85' : 'bg-muted-foreground/40'"
+                class="h-full origin-left rounded-full transition-[width] duration-200 ease-out bar-grow"
+                :class="material === 'gold' ? 'bg-gold' : 'bg-muted-foreground/50'"
                 :style="{ width: widthOf(row.pct) }"
               />
             </div>
-
-            <span class="w-32 shrink-0 text-right text-sm font-semibold tabular-nums sm:w-40">
-              {{ formatPercent(row.pct) }}
-              <span class="block text-xs font-medium text-muted-foreground">
-                {{ formatRupiah(row.cost) }}/gram
-              </span>
-            </span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 web application/stitch/projects/8644483373554369489/screens/2a145c640d2c4c13a7e12e1ea9562938
-# Design System & Documentation: Logam Mulia Hub
+# Design System & Documentation: Bandingemas
 
-Dokumentasi sistem desain, panduan gaya visual, token desain, dan spesifikasi antarmuka untuk portal pemantau dan komparasi harga emas komoditas **Logam Mulia Hub**.
+Dokumentasi sistem desain, panduan gaya visual, token desain, dan spesifikasi antarmuka untuk portal pemantau dan komparasi harga emas komoditas **Bandingemas**.
 
 ---
 

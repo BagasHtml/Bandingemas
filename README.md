@@ -1,4 +1,4 @@
-# Logam Mulia Hub
+# Bandingemas
 
 Portal pemantau dan komparasi harga emas komoditas Indonesia: harga perantara
 resmi (Antam, Pegadaian, BSI, Treasury, dll), riwayat harga, kalkulator simulasi,

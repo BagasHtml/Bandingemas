@@ -106,7 +106,7 @@ fetchComparison()
           <h1 class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
             Harga emas terendah hari ini
           </h1>
-          <p class="mt-2 text-5xl font-extrabold tabular-nums tracking-[-0.03em] text-gold-strong sm:text-[52px] sm:leading-[1.1]">
+          <p class="mt-2 text-4xl font-extrabold tabular-nums tracking-[-0.03em] text-gold-strong sm:text-[52px] sm:leading-[1.1]">
             {{ formatRupiah(lowest.pricePerGram) }}
             <span class="text-lg font-semibold text-muted-foreground">/gram</span>
           </p>
@@ -174,7 +174,7 @@ fetchComparison()
             v-for="gram in GRAM_OPTIONS"
             :key="gram"
             type="button"
-            class="rounded-xl border px-4 py-2 text-sm font-semibold tabular-nums transition-all duration-200"
+            class="inline-flex min-h-11 items-center rounded-xl border px-4 py-2 text-sm font-semibold tabular-nums transition-all duration-200"
             :class="
               selectedGram === gram
                 ? 'border-gold bg-gold-surface text-gold-strong'

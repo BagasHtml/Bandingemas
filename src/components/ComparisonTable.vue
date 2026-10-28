@@ -101,7 +101,7 @@ function initials(name: string): string {
     </Alert>
 
     <div v-else-if="spots.length > 0" class="overflow-x-auto">
-      <table class="w-full min-w-150 text-sm">
+      <table class="hidden w-full min-w-150 text-sm sm:table">
         <thead>
           <tr class="border-b text-left text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
             <th class="px-6 py-3 font-semibold sm:px-8">Perantara</th>
@@ -178,6 +178,81 @@ function initials(name: string): string {
           </tr>
         </tbody>
       </table>
+
+      <!-- Kartu untuk layar ponsel: informasi sama, tanpa scroll horizontal -->
+      <div class="sm:hidden">
+        <div
+          v-for="(spot, index) in spots"
+          :key="spot.source"
+          class="border-b py-4 last:border-b-0"
+        >
+          <div class="flex items-center gap-3">
+            <img
+              v-if="LOGOS[spot.source]"
+              :src="LOGOS[spot.source]"
+              :alt="`Logo ${spot.displayName}`"
+              class="size-9 shrink-0 rounded-full border border-border bg-white object-contain p-1"
+              loading="lazy"
+            />
+            <span
+              v-else
+              class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-surface text-xs font-bold text-gold-strong ring-1 ring-gold-border"
+            >
+              {{ initials(spot.displayName) }}
+            </span>
+
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <RouterLink
+                  :to="`/sumber/${spot.source}`"
+                  class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
+                >
+                  {{ spot.displayName }}
+                </RouterLink>
+                <span v-if="index === 0" class="shrink-0 text-xs font-semibold text-gold-strong">
+                  termurah
+                </span>
+              </div>
+              <p class="mt-0.5 truncate text-xs text-muted-foreground">{{ spot.materialType }}</p>
+            </div>
+
+            <div class="shrink-0 text-right">
+              <p class="font-bold tabular-nums">{{ formatRupiah(spot.pricePerGram) }}</p>
+              <p class="text-[10px] text-muted-foreground">beli/gram</p>
+            </div>
+          </div>
+
+          <div class="mt-2.5 flex items-center justify-between gap-3 text-xs">
+            <p class="min-w-0 text-muted-foreground">
+              <template v-if="spot.buybackPerGram !== null">
+                Buyback
+                <span class="font-semibold tabular-nums text-foreground">
+                  {{ formatRupiah(spot.buybackPerGram) }}
+                </span>
+              </template>
+              <template v-else>Buyback tidak tersedia</template>
+              <template v-if="spreadOf(spot)">
+                · spread
+                <span class="font-semibold tabular-nums text-foreground">
+                  {{ spreadOf(spot)!.percent.toFixed(1).replace('.', ',') }}%
+                </span>
+                ({{ formatRupiah(spreadOf(spot)!.rp) }})
+              </template>
+            </p>
+
+            <a
+              v-if="spot.urlHomepage"
+              :href="spot.urlHomepage"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex shrink-0 items-center gap-1 py-1.5 font-semibold text-gold-strong underline-offset-4 hover:underline"
+            >
+              Situs
+              <ExternalLink class="size-3" />
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
 
     <p v-else class="p-6 text-sm text-muted-foreground sm:px-8">

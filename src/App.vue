@@ -27,14 +27,14 @@ if (localStorage.getItem('theme') === 'dark') {
 
     <header class="border-b bg-card">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <RouterLink to="/" class="text-lg font-extrabold tracking-[-0.02em]">
-          Logam Mulia <span class="text-gold-strong">Hub</span>
+        <RouterLink to="/" class="text-base font-extrabold tracking-[-0.02em] sm:text-lg">
+          Banding<span class="text-gold-strong">emas</span>
         </RouterLink>
 
-        <nav class="flex items-center gap-5 text-sm">
+        <nav class="flex items-center gap-2.5 text-[13px] sm:gap-5 sm:text-sm">
           <RouterLink
             to="/"
-            class="py-2 transition-colors duration-150 hover:text-foreground"
+            class="py-3 transition-colors duration-150 hover:text-foreground sm:py-2"
             active-class="font-semibold text-foreground"
             exact-active-class="font-semibold text-foreground"
           >
@@ -42,14 +42,14 @@ if (localStorage.getItem('theme') === 'dark') {
           </RouterLink>
           <RouterLink
             to="/pantauan"
-            class="py-2 text-muted-foreground transition-colors duration-150 hover:text-foreground"
+            class="py-3 text-muted-foreground transition-colors duration-150 hover:text-foreground sm:py-2"
             active-class="font-semibold text-foreground"
           >
             Pantauan
           </RouterLink>
           <RouterLink
             to="/berita"
-            class="py-2 text-muted-foreground transition-colors duration-150 hover:text-foreground"
+            class="py-3 text-muted-foreground transition-colors duration-150 hover:text-foreground sm:py-2"
             active-class="font-semibold text-foreground"
           >
             Berita

@@ -199,7 +199,7 @@ const hasItems = computed(() => items.value.length > 0)
             Perantara
           </label>
           <Select v-model="formSource">
-            <SelectTrigger id="watch-source" class="mt-1.5 w-full">
+            <SelectTrigger id="watch-source" class="mt-1.5 h-11 w-full sm:h-9">
               <SelectValue :placeholder="sourcesLoading ? 'Memuat...' : 'Pilih perantara'" />
             </SelectTrigger>
             <SelectContent>
@@ -215,7 +215,7 @@ const hasItems = computed(() => items.value.length > 0)
             Material
           </label>
           <Select v-model="formMaterial">
-            <SelectTrigger id="watch-material" class="mt-1.5 w-full">
+            <SelectTrigger id="watch-material" class="mt-1.5 h-11 w-full sm:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +235,7 @@ const hasItems = computed(() => items.value.length > 0)
             type="number"
             min="0.01"
             step="0.01"
-            class="mt-1.5"
+            class="mt-1.5 h-11 sm:h-9"
           />
         </div>
 
@@ -250,7 +250,7 @@ const hasItems = computed(() => items.value.length > 0)
             min="1"
             step="1000"
             placeholder="mis. 2400000"
-            class="mt-1.5"
+            class="mt-1.5 h-11 sm:h-9"
           />
         </div>
 
@@ -259,7 +259,7 @@ const hasItems = computed(() => items.value.length > 0)
             Rencana
           </label>
           <Select v-model="formDirection">
-            <SelectTrigger id="watch-direction" class="mt-1.5 w-full">
+            <SelectTrigger id="watch-direction" class="mt-1.5 h-11 w-full sm:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -272,7 +272,7 @@ const hasItems = computed(() => items.value.length > 0)
 
       <p v-if="formError" class="mt-3 text-sm font-medium text-destructive">{{ formError }}</p>
 
-      <Button class="mt-4 rounded-xl" :disabled="sourcesLoading" @click="submit">
+      <Button class="mt-4 h-11 rounded-xl px-5 sm:h-10" :disabled="sourcesLoading" @click="submit">
         <Plus class="size-4" />
         Tambah pantauan
       </Button>
@@ -366,7 +366,7 @@ const hasItems = computed(() => items.value.length > 0)
             <Button
               variant="ghost"
               size="icon"
-              class="size-9 text-muted-foreground hover:text-destructive"
+              class="size-11 text-muted-foreground hover:text-destructive"
               :title="`Hapus pantauan ${productLabel(item)}`"
               @click="remove(item.id)"
             >
