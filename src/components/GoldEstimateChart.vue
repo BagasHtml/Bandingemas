@@ -5,20 +5,24 @@ import { formatRupiah, formatDate } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /*
- * Estimasi harga emas saat ini: rata-rata harga per gram dari semua
- * perantara yang sehat, divisualkan sebagai distribusi harga antar sumber.
+ * Estimasi harga emas saat ini: median harga per gram dari semua
+ * perantara yang sehat, ditampilkan sebagai distribusi harga antar sumber.
  * Semua angka dari API, tidak ada nilai karangan.
  */
 const { goldSpots, isLoading } = useComparison()
 
 const rows = computed(() => goldSpots.value)
 
-// Skala bersama untuk semua bar, diberi ruang kecil di kedua ujung
+// Skala bar memakai rentang harga normal saja. Satu kutipan ekstrem
+// (mis. satuan berat keliru dari sumber) tidak boleh memipihkan bar lainnya.
 const scale = computed(() => {
   const prices = goldSpots.value.map((s) => s.pricePerGram)
   if (prices.length < 2) return null
-  const min = Math.min(...prices)
-  const max = Math.max(...prices)
+  const mid = median(prices) ?? prices[0]!
+  const normal = prices.filter((price) => price >= mid * 0.6 && price <= mid * 1.6)
+  const pool = normal.length >= 2 ? normal : prices
+  const min = Math.min(...pool)
+  const max = Math.max(...pool)
   const pad = (max - min) * 0.08 || max * 0.01
   return { min: min - pad, max: max + pad }
 })
@@ -45,107 +49,71 @@ const medianPrice = computed(() => {
   return median(goldSpots.value.map((s) => s.pricePerGram))
 })
 
-const averageLeft = computed(() => {
-  if (medianPrice.value === null || !scale.value) return null
-  const pct = ((medianPrice.value - scale.value.min) / (scale.value.max - scale.value.min)) * 100
-  return `${Math.max(0, Math.min(100, pct))}%`
-})
-
 const lastRecorded = computed(() => goldSpots.value[0]?.recordedDate ?? null)
 </script>
 
 <template>
-  <section class="rounded-2xl border bg-card p-6 sm:p-8" :aria-busy="isLoading">
-    <h2 class="text-lg font-bold tracking-[-0.02em]">Estimasi Harga Emas Saat Ini</h2>
+  <div class="flex flex-col gap-4" :aria-busy="isLoading">
+    <div class="flex items-baseline justify-between gap-3 border-b pb-3">
+      <h2 class="text-sm font-semibold">Estimasi pasar</h2>
+      <span class="text-xs text-muted-foreground">median</span>
+    </div>
 
-    <!-- Loading: kerangka seukuran konten asli -->
-    <div v-if="isLoading" class="mt-5">
+    <div v-if="isLoading">
       <span class="sr-only">Memuat estimasi harga dari perantara...</span>
-      <Skeleton class="h-10 w-64" />
-      <div class="mt-6 space-y-3">
-        <Skeleton v-for="i in 6" :key="i" class="h-6 w-full" />
+      <Skeleton class="h-8 w-40" />
+      <div class="mt-4 flex flex-col gap-2">
+        <Skeleton v-for="i in 5" :key="i" class="h-5 w-full" />
       </div>
     </div>
 
     <template v-else-if="medianPrice !== null && scale">
-      <p class="mt-2 text-sm text-muted-foreground">
-        Median dari {{ rows.length }} perantara
-        <template v-if="lastRecorded">, data tercatat {{ formatDate(lastRecorded) }}</template
-        >.
-      </p>
+      <div>
+        <p class="text-2xl font-bold tabular-nums tracking-tight text-gold-strong">
+          {{ formatRupiah(medianPrice) }}
+        </p>
+        <p class="mt-1 text-xs text-muted-foreground">
+          per gram dari {{ rows.length }} perantara
+          <template v-if="lastRecorded">, {{ formatDate(lastRecorded) }}</template>
+        </p>
+      </div>
 
-      <p class="mt-3 text-4xl font-extrabold tabular-nums tracking-[-0.03em] text-gold-strong">
-        {{ formatRupiah(medianPrice) }}
-        <span class="text-base font-semibold text-muted-foreground">/gram</span>
-      </p>
-
-      <!-- Distribusi harga antar perantara -->
       <div
-        class="mt-6"
+        class="flex flex-col gap-2"
         role="img"
         :aria-label="`Distribusi harga emas per gram dari ${rows.length} perantara, median ${formatRupiah(medianPrice)}`"
       >
-        <div class="relative">
-          <!-- Penanda estimasi (median) -->
-          <div
-            v-if="averageLeft"
-            class="pointer-events-none absolute inset-y-0 z-10 border-l-2 border-dashed border-foreground/50"
-            :style="{ left: averageLeft }"
-            aria-hidden="true"
-          >
+        <RouterLink
+          v-for="spot in rows"
+          :key="spot.source"
+          :to="`/sumber/${spot.source}`"
+          class="flex min-h-11 items-center gap-2.5 transition-colors hover:bg-muted/50 lg:min-h-8"
+        >
+          <span class="w-24 shrink-0 truncate text-xs text-muted-foreground">
+            {{ spot.displayName }}
+          </span>
+          <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <span
-              class="absolute -top-1 left-0 -translate-x-1/2 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background"
-            >
-              estimasi
-            </span>
-          </div>
-
-          <div class="space-y-2.5">
-            <div v-for="spot in rows" :key="spot.source" class="flex items-center gap-2 sm:gap-3">
-              <RouterLink
-                :to="`/sumber/${spot.source}`"
-                class="w-20 shrink-0 truncate text-xs font-medium underline-offset-4 hover:underline sm:w-36 sm:text-sm"
-              >
-                {{ spot.displayName }}
-              </RouterLink>
-
-              <div class="relative h-5 flex-1 sm:h-6">
-                <div
-                  class="absolute inset-y-0 left-0 origin-left rounded-md bg-gold/85 transition-[width] duration-200 ease-out bar-grow"
-                  :style="{ width: widthOf(spot.pricePerGram) }"
-                />
-              </div>
-
-              <span class="w-24 shrink-0 text-right text-xs font-semibold tabular-nums sm:w-32 sm:text-sm">
-                {{ formatRupiah(spot.pricePerGram) }}
-              </span>
-            </div>
-          </div>
-        </div>
+              class="block h-full rounded-full bg-gold"
+              :style="{ width: widthOf(spot.pricePerGram) }"
+            />
+          </span>
+          <span class="w-16 shrink-0 text-right text-xs font-medium tabular-nums">
+            {{ formatRupiah(spot.pricePerGram) }}
+          </span>
+        </RouterLink>
       </div>
 
-      <p class="mt-4 text-xs text-muted-foreground">
-        Estimasi memakai median agar harga ekstrem dari satu-dua sumber tidak menggeser angka. Harga
-        tiap perantara dinormalisasi ke per gram dari berat terdekat 1 gram; quote yang buybacknya
-        di atas harga jual ditolak karena tidak konsisten.
+      <p class="text-xs leading-relaxed text-muted-foreground">
+        Median dipakai agar harga ekstrem dari satu-dua sumber tidak menggeser angka. Skala bar
+        mengabaikan kutipan ekstrem agar sebaran harga normal tetap terbaca. Harga dinormalisasi ke
+        per gram dari berat terdekat 1 gram.
       </p>
     </template>
 
-    <p v-else class="mt-4 text-sm text-muted-foreground">
-      Estimasi butuh minimal dua perantara yang sehat untuk dibandingkan. Sumber sedang fluktuatif,
-      coba muat ulang halaman beberapa saat lagi.
+    <p v-else class="text-sm text-muted-foreground">
+      Estimasi butuh minimal dua perantara sehat untuk dibandingkan. Coba muat ulang beberapa saat
+      lagi.
     </p>
-  </section>
+  </div>
 </template>
-
-<style scoped>
-/* Bar tumbuh dari kiri saat data tiba; dimatikan oleh prefers-reduced-motion */
-.bar-grow {
-  animation: bar-grow 0.3s ease-out;
-}
-@keyframes bar-grow {
-  from {
-    transform: scaleX(0);
-  }
-}
-</style>

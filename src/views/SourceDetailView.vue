@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -24,7 +25,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import HistoryChart, { type ChartPoint } from '@/components/HistoryChart.vue'
-import { RefreshCw } from '@lucide/vue'
+import { ArrowLeft, ArrowUpRight, RefreshCw } from '@lucide/vue'
 
 const route = useRoute()
 const sourceName = computed(() => String(route.params.source))
@@ -46,7 +47,6 @@ onMounted(() => {
   fetchPrices()
 })
 
-// Material unik untuk filter
 const materials = computed(() => {
   const set = new Set(prices.value.map((item) => item.material))
   return [...set]
@@ -71,6 +71,21 @@ function productKeyOf(product: ProductKey): string {
   return `${product.material}|${product.materialType}|${product.weight}`
 }
 
+function materialLabel(material: string): string {
+  if (material === 'gold') return 'Emas'
+  if (material === 'silver') return 'Perak'
+  return material
+}
+
+// API kadang mengirim materialType "unknown"; sebut materialnya saja
+function typeLabel(item: { material: string; materialType: string }): string {
+  const type = item.materialType.trim()
+  if (type.length === 0 || type.toLowerCase() === 'unknown') {
+    return item.material === 'silver' ? 'Perak' : 'Emas'
+  }
+  return type
+}
+
 const products = computed<ProductKey[]>(() => {
   const map = new Map<string, ProductKey>()
   for (const item of filteredPrices.value) {
@@ -86,12 +101,10 @@ const products = computed<ProductKey[]>(() => {
 
 const selectedProduct = ref<string>('')
 
-// Reset pilihan produk saat filter material berubah
 watch(selectedMaterial, () => {
   selectedProduct.value = ''
 })
 
-// Produk terpilih untuk grafik (default produk pertama)
 const activeProduct = computed<ProductKey | null>(() => {
   const found = products.value.find((p) => productKeyOf(p) === selectedProduct.value)
   return found ?? products.value[0] ?? null
@@ -131,24 +144,31 @@ const lastUpdated = computed(() => {
 </script>
 
 <template>
-  <div>
-    <div class="mb-8 border-b pb-6">
+  <div class="flex flex-col gap-10 sm:gap-12">
+    <header class="border-b pb-6">
       <RouterLink
         to="/"
-        class="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        class="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       >
+        <ArrowLeft class="size-4" aria-hidden="true" />
         Semua perantara
       </RouterLink>
+
       <div class="mt-2 flex items-center gap-3">
-        <img
-          v-if="LOGOS[sourceName]"
-          :src="LOGOS[sourceName]"
-          :alt="`Logo ${displayName}`"
-          class="size-12 rounded-full border border-border bg-white object-contain p-1"
-        />
-        <h1 class="text-2xl font-extrabold tracking-[-0.02em] sm:text-3xl">{{ displayName }}</h1>
+        <span
+          class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white p-1"
+        >
+          <img
+            v-if="LOGOS[sourceName]"
+            :src="LOGOS[sourceName]"
+            :alt="`Logo ${displayName}`"
+            class="size-full object-contain"
+          />
+        </span>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ displayName }}</h1>
       </div>
-      <p v-if="lastUpdated" class="mt-1 text-sm text-muted-foreground">
+
+      <p v-if="lastUpdated" class="mt-2 text-sm text-muted-foreground">
         Pembaruan terakhir {{ formatDate(lastUpdated) }}
         <template v-if="prices[0]?.urlHomepage">
           <span aria-hidden="true"> · </span>
@@ -156,16 +176,16 @@ const lastUpdated = computed(() => {
             :href="prices[0].urlHomepage"
             target="_blank"
             rel="noopener noreferrer"
-            class="underline-offset-4 hover:text-foreground hover:underline"
+            class="inline-flex items-center gap-1 underline-offset-4 hover:text-foreground hover:underline"
           >
             situs resmi
+            <ArrowUpRight class="size-3.5" aria-hidden="true" />
           </a>
         </template>
       </p>
-    </div>
+    </header>
 
-    <!-- Status gagal memuat harga -->
-    <Alert v-if="pricesError && !pricesLoading" variant="destructive" class="mb-6">
+    <Alert v-if="pricesError && !pricesLoading" variant="destructive">
       <AlertTitle>Gagal memuat harga dari sumber ini</AlertTitle>
       <AlertDescription class="flex flex-wrap items-center gap-3">
         <span>{{ pricesError }}</span>
@@ -178,43 +198,63 @@ const lastUpdated = computed(() => {
 
     <div v-if="pricesLoading" aria-busy="true">
       <span class="sr-only">Memuat harga {{ displayName }}...</span>
-      <div class="space-y-3">
-        <Skeleton v-for="i in 6" :key="i" class="h-10 w-full" />
+      <div class="flex flex-col gap-2">
+        <Skeleton v-for="i in 6" :key="i" class="h-11 w-full rounded-none" />
       </div>
     </div>
 
     <template v-else-if="prices.length > 0">
-      <!-- Filter material -->
-      <div class="mb-4 flex items-center gap-2">
-        <span class="text-sm text-muted-foreground">Material:</span>
-        <Select v-model="selectedMaterial">
-          <SelectTrigger class="w-40">
-            <SelectValue placeholder="Semua material" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua</SelectItem>
-            <SelectItem
-              v-for="material in materials"
-              :key="material"
-              :value="material"
-              class="capitalize"
-            >
-              {{ material }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <section aria-labelledby="harga-sekarang-title" class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
+          <div>
+            <h2 id="harga-sekarang-title" class="text-sm font-semibold">Harga saat ini</h2>
+            <p class="mt-0.5 text-xs tabular-nums text-muted-foreground">
+              {{ filteredPrices.length }} produk
+            </p>
+          </div>
 
-      <!-- Tabel harga saat ini -->
-      <section class="mb-10 rounded-2xl border bg-card p-6">
-        <h2 class="mb-3 text-lg font-bold tracking-[-0.02em]">Harga Saat Ini</h2>
+          <div class="flex items-center gap-2">
+            <label for="material-filter" class="text-xs text-muted-foreground">Material</label>
+            <Select v-model="selectedMaterial">
+              <SelectTrigger
+                id="material-filter"
+                class="w-32 data-[size=default]:h-11 sm:data-[size=default]:h-9"
+              >
+                <SelectValue placeholder="Semua material" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">Semua</SelectItem>
+                  <SelectItem v-for="material in materials" :key="material" :value="material">
+                    {{ materialLabel(material) }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Produk</TableHead>
-              <TableHead>Berat</TableHead>
-              <TableHead class="text-right">Harga Jual</TableHead>
-              <TableHead class="text-right">Buyback</TableHead>
+              <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
+                Produk
+              </TableHead>
+              <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
+                Berat
+              </TableHead>
+              <TableHead
+                scope="col"
+                class="h-9 text-right text-xs font-medium text-muted-foreground"
+              >
+                Harga jual
+              </TableHead>
+              <TableHead
+                scope="col"
+                class="h-9 text-right text-xs font-medium text-muted-foreground"
+              >
+                Buyback
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -222,8 +262,10 @@ const lastUpdated = computed(() => {
               v-for="item in filteredPrices"
               :key="item.lineKey || item.materialType + item.weight"
             >
-              <TableCell class="font-medium">{{ item.materialType }}</TableCell>
-              <TableCell class="tabular-nums">{{ item.weight }} {{ item.weightUnit }}</TableCell>
+              <TableCell class="font-medium">{{ typeLabel(item) }}</TableCell>
+              <TableCell class="tabular-nums text-muted-foreground">
+                {{ item.weight }} {{ item.weightUnit }}
+              </TableCell>
               <TableCell class="text-right font-semibold tabular-nums">
                 {{ formatRupiah(item.sellPrice) }}
               </TableCell>
@@ -235,31 +277,39 @@ const lastUpdated = computed(() => {
         </Table>
       </section>
 
-      <!-- Grafik riwayat harga -->
-      <section class="rounded-2xl border bg-card p-6">
-        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 class="text-lg font-bold tracking-[-0.02em]">Riwayat Harga</h2>
-          <div v-if="products.length > 1" class="flex items-center gap-2">
-            <Select v-model="selectedProduct">
-              <SelectTrigger class="h-8 w-64 text-xs">
-                <SelectValue placeholder="Produk otomatis" />
-              </SelectTrigger>
-              <SelectContent>
+      <section aria-labelledby="riwayat-title" class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-end justify-between gap-3 border-b pb-3">
+          <div>
+            <h2 id="riwayat-title" class="text-sm font-semibold">Riwayat harga</h2>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              365 hari terakhir, harga jual per produk
+            </p>
+          </div>
+
+          <Select v-if="products.length > 1" v-model="selectedProduct">
+            <SelectTrigger
+              class="w-60 data-[size=default]:h-11 sm:data-[size=default]:h-9"
+              aria-label="Pilih produk"
+            >
+              <SelectValue placeholder="Produk otomatis" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
                 <SelectItem
                   v-for="product in products"
                   :key="productKeyOf(product)"
                   :value="productKeyOf(product)"
                 >
-                  {{ product.materialType }} ({{ product.weight }} {{ product.weightUnit }})
+                  {{ typeLabel(product) }} ({{ product.weight }} {{ product.weightUnit }})
                 </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div v-if="historyLoading" aria-busy="true" class="py-2">
           <span class="sr-only">Memuat riwayat harga...</span>
-          <Skeleton class="h-72 w-full" />
+          <Skeleton class="h-72 w-full rounded-none" />
         </div>
         <p v-else-if="chartData.length < 2" class="py-8 text-sm text-muted-foreground">
           Data riwayat belum cukup untuk digambarkan. Grafik muncul setelah sumber mencatat harga
@@ -269,7 +319,6 @@ const lastUpdated = computed(() => {
       </section>
     </template>
 
-    <!-- Sumber tidak memiliki data harga -->
     <Alert v-else-if="!pricesError">
       <AlertTitle>Belum ada data harga</AlertTitle>
       <AlertDescription>

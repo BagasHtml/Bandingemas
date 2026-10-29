@@ -1,31 +1,36 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useComparison, type SpotPrice } from '@/composables/useComparison'
 import { LOGOS } from '@/lib/logos'
 import { formatRupiah } from '@/lib/format'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ExternalLink, RefreshCw } from '@lucide/vue'
 
-/*
- * Tabel perbandingan (DESIGN.md 5.3). Kolom status stok tidak diikutkan:
- * API tidak menyediakan data ketersediaan (kesepakatan dengan pemilik produk).
- */
 const { goldSpots, silverSpots, failedCount, isLoading, error, fetchComparison } =
   useComparison()
 
-// Filter material nyata dari API (kesepakatan: bukan fisik/digital)
-const FILTERS = [
+const MATERIALS = [
   { value: 'gold', label: 'Emas' },
   { value: 'silver', label: 'Perak' },
 ] as const
 
-const selectedMaterial = ref<'gold' | 'silver'>('gold')
+const selectedMaterial = ref<string>('gold')
 
-const spots = computed(() =>
-  selectedMaterial.value === 'gold' ? goldSpots.value : silverSpots.value,
-)
+function spotsFor(material: string): SpotPrice[] {
+  return material === 'gold' ? goldSpots.value : silverSpots.value
+}
 
 function spreadOf(spot: SpotPrice): { rp: number; percent: number } | null {
   if (spot.buybackPerGram === null) return null
@@ -42,222 +47,277 @@ function initials(name: string): string {
     .slice(0, 2)
     .toUpperCase()
 }
+
+function hasProductType(type: string): boolean {
+  return type.trim().length > 0 && type.toLowerCase() !== 'unknown'
+}
 </script>
 
 <template>
-  <section class="rounded-2xl border bg-card">
-    <div class="flex flex-wrap items-center justify-between gap-3 border-b p-6 sm:px-8">
-      <div>
-        <h2 class="text-lg font-bold tracking-[-0.02em]">Perbandingan Antar Perantara</h2>
-        <p class="mt-0.5 text-sm text-muted-foreground">
-          Harga per gram, diurutkan dari termurah.
-          <span v-if="failedCount > 0 && !isLoading" class="text-xs">
-            {{ failedCount }} sumber sedang tidak tersedia.
-          </span>
-        </p>
-      </div>
-
-      <!-- Filter material -->
-      <div class="flex gap-2" role="group" aria-label="Filter material">
-        <button
-          v-for="filter in FILTERS"
-          :key="filter.value"
-          type="button"
-          class="rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200"
-          :class="
-            selectedMaterial === filter.value
-              ? 'border-gold bg-gold-surface text-gold-strong'
-              : 'border-border bg-background hover:border-gold-border hover:bg-gold-surface/50'
-          "
-          :aria-pressed="selectedMaterial === filter.value"
-          @click="selectedMaterial = filter.value"
-        >
-          {{ filter.label }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="isLoading" aria-busy="true" class="p-6 sm:px-8">
-      <span class="sr-only">Memuat tabel perbandingan...</span>
-      <div class="space-y-4">
-        <div v-for="i in 7" :key="i" class="flex items-center gap-3">
-          <Skeleton class="size-9 shrink-0 rounded-full" />
-          <Skeleton class="h-5 flex-1" />
-          <Skeleton class="h-5 w-28 shrink-0" />
-          <Skeleton class="hidden h-5 w-28 shrink-0 sm:block" />
-        </div>
-      </div>
-    </div>
-
-    <Alert v-else-if="error && spots.length === 0" variant="destructive" class="m-6">
-      <AlertTitle>Tidak ada data harga</AlertTitle>
-      <AlertDescription class="flex flex-wrap items-center gap-3">
-        <span>{{ error }}</span>
-        <Button size="sm" variant="outline" @click="fetchComparison">
-          <RefreshCw class="size-4" />
-          Coba lagi
-        </Button>
-      </AlertDescription>
-    </Alert>
-
-    <div v-else-if="spots.length > 0" class="overflow-x-auto">
-      <table class="hidden w-full min-w-150 text-sm sm:table">
-        <thead>
-          <tr class="border-b text-left text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            <th class="px-6 py-3 font-semibold sm:px-8">Perantara</th>
-            <th class="px-4 py-3 font-semibold">Produk</th>
-            <th class="px-4 py-3 text-right font-semibold">Beli/gram</th>
-            <th class="px-4 py-3 text-right font-semibold">Buyback/gram</th>
-            <th class="px-4 py-3 text-right font-semibold">Spread</th>
-            <th class="px-6 py-3 text-right font-semibold sm:px-8">Situs</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(spot, index) in spots"
-            :key="spot.source"
-            class="border-b transition-colors duration-150 last:border-b-0 hover:bg-[#f9fafb] dark:hover:bg-[#26292d]"
-          >
-            <td class="px-6 py-3.5 sm:px-8">
-              <div class="flex items-center gap-3">
-                <img
-                  v-if="LOGOS[spot.source]"
-                  :src="LOGOS[spot.source]"
-                  :alt="`Logo ${spot.displayName}`"
-                  class="size-9 shrink-0 rounded-full border border-border bg-white object-contain p-1"
-                  loading="lazy"
-                />
-                <span
-                  v-else
-                  class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-surface text-xs font-bold text-gold-strong ring-1 ring-gold-border"
-                >
-                  {{ initials(spot.displayName) }}
-                </span>
-                <div class="min-w-0">
-                  <RouterLink
-                    :to="`/sumber/${spot.source}`"
-                    class="block truncate font-semibold underline-offset-4 hover:underline"
-                  >
-                    {{ spot.displayName }}
-                  </RouterLink>
-                  <span v-if="index === 0" class="text-xs font-semibold text-gold-strong">termurah</span>
-                </div>
-              </div>
-            </td>
-            <td class="max-w-40 truncate px-4 py-3.5 text-muted-foreground">
-              {{ spot.materialType }}
-            </td>
-            <td class="px-4 py-3.5 text-right font-semibold tabular-nums">
-              {{ formatRupiah(spot.pricePerGram) }}
-            </td>
-            <td class="px-4 py-3.5 text-right tabular-nums text-muted-foreground">
-              {{ spot.buybackPerGram === null ? 'tidak tersedia' : formatRupiah(spot.buybackPerGram) }}
-            </td>
-            <td class="px-4 py-3.5 text-right tabular-nums">
-              <template v-if="spreadOf(spot)">
-                <span class="font-medium">{{ formatRupiah(spreadOf(spot)!.rp) }}</span>
-                <span class="block text-xs text-muted-foreground">
-                  {{ spreadOf(spot)!.percent.toFixed(1).replace('.', ',') }}%
-                </span>
-              </template>
-              <span v-else class="text-muted-foreground">-</span>
-            </td>
-            <td class="px-6 py-3.5 text-right sm:px-8">
-              <a
-                v-if="spot.urlHomepage"
-                :href="spot.urlHomepage"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-sm font-medium text-gold-strong underline-offset-4 hover:underline"
-              >
-                Kunjungi situs
-                <ExternalLink class="size-3.5" />
-              </a>
-              <span v-else class="text-xs text-muted-foreground">-</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Kartu untuk layar ponsel: informasi sama, tanpa scroll horizontal -->
-      <div class="sm:hidden">
-        <div
-          v-for="(spot, index) in spots"
-          :key="spot.source"
-          class="border-b py-4 last:border-b-0"
-        >
-          <div class="flex items-center gap-3">
-            <img
-              v-if="LOGOS[spot.source]"
-              :src="LOGOS[spot.source]"
-              :alt="`Logo ${spot.displayName}`"
-              class="size-9 shrink-0 rounded-full border border-border bg-white object-contain p-1"
-              loading="lazy"
-            />
-            <span
-              v-else
-              class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-surface text-xs font-bold text-gold-strong ring-1 ring-gold-border"
-            >
-              {{ initials(spot.displayName) }}
+  <section aria-labelledby="perbandingan-title" class="min-w-0">
+    <Tabs v-model="selectedMaterial" class="flex flex-col gap-0">
+      <header class="flex flex-wrap items-end justify-between gap-4 border-b pb-4">
+        <div class="min-w-0">
+          <h2 id="perbandingan-title" class="text-xl font-bold tracking-[-0.02em]">
+            Perbandingan perantara
+          </h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Harga per gram, diurutkan dari termurah.
+            <span v-if="failedCount > 0 && !isLoading">
+              {{ failedCount }} sumber sedang tidak tersedia.
             </span>
+          </p>
+        </div>
 
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <RouterLink
-                  :to="`/sumber/${spot.source}`"
-                  class="min-w-0 truncate font-semibold underline-offset-4 hover:underline"
-                >
-                  {{ spot.displayName }}
-                </RouterLink>
-                <span v-if="index === 0" class="shrink-0 text-xs font-semibold text-gold-strong">
-                  termurah
-                </span>
-              </div>
-              <p class="mt-0.5 truncate text-xs text-muted-foreground">{{ spot.materialType }}</p>
-            </div>
+        <TabsList class="h-11" aria-label="Pilih material">
+          <TabsTrigger
+            v-for="material in MATERIALS"
+            :key="material.value"
+            :value="material.value"
+            class="h-11 px-3"
+          >
+            {{ material.label }}
+          </TabsTrigger>
+        </TabsList>
+      </header>
 
-            <div class="shrink-0 text-right">
-              <p class="font-bold tabular-nums">{{ formatRupiah(spot.pricePerGram) }}</p>
-              <p class="text-[10px] text-muted-foreground">beli/gram</p>
-            </div>
-          </div>
-
-          <div class="mt-2.5 flex items-center justify-between gap-3 text-xs">
-            <p class="min-w-0 text-muted-foreground">
-              <template v-if="spot.buybackPerGram !== null">
-                Buyback
-                <span class="font-semibold tabular-nums text-foreground">
-                  {{ formatRupiah(spot.buybackPerGram) }}
-                </span>
-              </template>
-              <template v-else>Buyback tidak tersedia</template>
-              <template v-if="spreadOf(spot)">
-                · spread
-                <span class="font-semibold tabular-nums text-foreground">
-                  {{ spreadOf(spot)!.percent.toFixed(1).replace('.', ',') }}%
-                </span>
-                ({{ formatRupiah(spreadOf(spot)!.rp) }})
-              </template>
-            </p>
-
-            <a
-              v-if="spot.urlHomepage"
-              :href="spot.urlHomepage"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex shrink-0 items-center gap-1 py-1.5 font-semibold text-gold-strong underline-offset-4 hover:underline"
-            >
-              Situs
-              <ExternalLink class="size-3" />
-            </a>
+      <div v-if="isLoading" class="py-6" aria-busy="true">
+        <span class="sr-only">Memuat tabel perbandingan...</span>
+        <div class="flex flex-col gap-4">
+          <div v-for="i in 7" :key="i" class="flex items-center gap-3">
+            <Skeleton class="size-9 shrink-0" />
+            <Skeleton class="h-4 flex-1" />
+            <Skeleton class="h-4 w-24 shrink-0" />
           </div>
         </div>
       </div>
-    </div>
 
-    <p v-else class="p-6 text-sm text-muted-foreground sm:px-8">
-      Belum ada data {{ selectedMaterial === 'gold' ? 'emas' : 'perak' }} dari sumber
-      mana pun. Coba lagi nanti.
-    </p>
+      <Alert
+        v-else-if="error && goldSpots.length === 0 && silverSpots.length === 0"
+        variant="destructive"
+        class="mt-6"
+      >
+        <AlertTitle>Tidak ada data harga</AlertTitle>
+        <AlertDescription class="flex flex-wrap items-center gap-3">
+          <span>{{ error }}</span>
+          <Button size="sm" variant="outline" @click="fetchComparison">
+            <RefreshCw />
+            Coba lagi
+          </Button>
+        </AlertDescription>
+      </Alert>
+
+      <template v-else>
+        <TabsContent
+          v-for="material in MATERIALS"
+          :key="material.value"
+          :value="material.value"
+          class="mt-0"
+        >
+          <div
+            v-if="spotsFor(material.value).length === 0"
+            class="py-10 text-sm text-muted-foreground"
+          >
+            Belum ada data {{ material.label.toLowerCase() }} dari sumber mana pun. Coba lagi nanti.
+          </div>
+
+          <template v-else>
+            <div class="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow class="hover:bg-transparent">
+                    <TableHead scope="col" class="w-10 pl-0">#</TableHead>
+                    <TableHead scope="col" class="pl-0">Perantara</TableHead>
+                    <TableHead scope="col" class="hidden md:table-cell">Produk</TableHead>
+                    <TableHead scope="col" class="text-right">Beli/gram</TableHead>
+                    <TableHead scope="col" class="text-right">Buyback/gram</TableHead>
+                    <TableHead scope="col" class="text-right">Spread</TableHead>
+                    <TableHead scope="col" class="w-12 pr-0 text-right">
+                      <span class="sr-only">Situs</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
+                    v-for="(spot, index) in spotsFor(material.value)"
+                    :key="spot.source"
+                  >
+                    <TableCell class="pl-0 text-xs tabular-nums text-muted-foreground">
+                      {{ String(index + 1).padStart(2, '0') }}
+                    </TableCell>
+                    <TableCell class="pl-0">
+                      <div class="flex items-center gap-3">
+                        <span
+                          v-if="LOGOS[spot.source]"
+                          class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white p-1"
+                        >
+                          <img
+                            :src="LOGOS[spot.source]"
+                            :alt="`Logo ${spot.displayName}`"
+                            class="size-full object-contain"
+                            loading="lazy"
+                          />
+                        </span>
+                        <span
+                          v-else
+                          class="flex size-9 shrink-0 items-center justify-center rounded-sm bg-gold-surface text-xs font-bold text-gold-strong"
+                        >
+                          {{ initials(spot.displayName) }}
+                        </span>
+
+                        <div class="min-w-0">
+                          <RouterLink
+                            :to="`/sumber/${spot.source}`"
+                            class="block truncate font-semibold underline-offset-4 hover:underline"
+                          >
+                            {{ spot.displayName }}
+                          </RouterLink>
+                          <Badge
+                            v-if="index === 0"
+                            variant="outline"
+                            class="mt-1 px-1.5 py-0 text-[10px] font-semibold text-gold-strong"
+                          >
+                            Termurah
+                          </Badge>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell class="hidden max-w-40 truncate text-muted-foreground md:table-cell">
+                      {{ hasProductType(spot.materialType) ? spot.materialType : '-' }}
+                    </TableCell>
+                    <TableCell class="text-right font-semibold tabular-nums">
+                      {{ formatRupiah(spot.pricePerGram) }}
+                    </TableCell>
+                    <TableCell class="text-right tabular-nums text-muted-foreground">
+                      {{ spot.buybackPerGram === null ? '-' : formatRupiah(spot.buybackPerGram) }}
+                    </TableCell>
+                    <TableCell class="text-right tabular-nums">
+                      <template v-if="spreadOf(spot)">
+                        <span class="font-medium">{{ formatRupiah(spreadOf(spot)!.rp) }}</span>
+                        <span class="block text-xs text-muted-foreground">
+                          {{ spreadOf(spot)!.percent.toFixed(1).replace('.', ',') }}%
+                        </span>
+                      </template>
+                      <span v-else class="text-muted-foreground">-</span>
+                    </TableCell>
+                    <TableCell class="pr-0 text-right">
+                      <Button
+                        v-if="spot.urlHomepage"
+                        as-child
+                        variant="ghost"
+                        size="icon-sm"
+                      >
+                        <a
+                          :href="spot.urlHomepage"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :aria-label="`Buka situs ${spot.displayName}`"
+                        >
+                          <ExternalLink />
+                        </a>
+                      </Button>
+                      <span v-else class="text-xs text-muted-foreground">-</span>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <ul class="divide-y sm:hidden">
+              <li
+                v-for="(spot, index) in spotsFor(material.value)"
+                :key="spot.source"
+                class="py-4"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex min-w-0 items-center gap-3">
+                    <span
+                      v-if="LOGOS[spot.source]"
+                      class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white p-1"
+                    >
+                      <img
+                        :src="LOGOS[spot.source]"
+                        :alt="`Logo ${spot.displayName}`"
+                        class="size-full object-contain"
+                        loading="lazy"
+                      />
+                    </span>
+                    <span
+                      v-else
+                      class="flex size-9 shrink-0 items-center justify-center rounded-sm bg-gold-surface text-xs font-bold text-gold-strong"
+                    >
+                      {{ initials(spot.displayName) }}
+                    </span>
+
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <RouterLink
+                          :to="`/sumber/${spot.source}`"
+                          class="inline-flex min-h-11 min-w-0 items-center truncate font-semibold underline-offset-4 hover:underline"
+                        >
+                          {{ spot.displayName }}
+                        </RouterLink>
+                        <Badge
+                          v-if="index === 0"
+                          variant="outline"
+                          class="shrink-0 px-1.5 py-0 text-[10px] font-semibold text-gold-strong"
+                        >
+                          Termurah
+                        </Badge>
+                      </div>
+                      <p v-if="hasProductType(spot.materialType)" class="truncate text-xs text-muted-foreground">
+                        {{ spot.materialType }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="shrink-0 text-right">
+                    <p class="font-semibold tabular-nums">{{ formatRupiah(spot.pricePerGram) }}</p>
+                    <p class="text-xs text-muted-foreground">per gram</p>
+                  </div>
+                </div>
+
+                <dl class="mt-3 grid grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <dt class="text-muted-foreground">Buyback</dt>
+                    <dd class="mt-0.5 font-medium tabular-nums">
+                      {{
+                        spot.buybackPerGram === null
+                          ? 'tidak tersedia'
+                          : formatRupiah(spot.buybackPerGram)
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-muted-foreground">Spread</dt>
+                    <dd class="mt-0.5 font-medium tabular-nums">
+                      <template v-if="spreadOf(spot)">
+                        {{ spreadOf(spot)!.percent.toFixed(1).replace('.', ',') }}%
+                      </template>
+                      <template v-else>-</template>
+                    </dd>
+                  </div>
+                  <div class="text-right">
+                    <dt class="text-muted-foreground">Situs</dt>
+                    <dd class="mt-0.5">
+                      <a
+                        v-if="spot.urlHomepage"
+                        :href="spot.urlHomepage"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex min-h-11 items-center font-semibold text-gold-strong underline-offset-4 hover:underline"
+                      >
+                        Buka
+                      </a>
+                      <span v-else>-</span>
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            </ul>
+          </template>
+        </TabsContent>
+      </template>
+    </Tabs>
   </section>
 </template>

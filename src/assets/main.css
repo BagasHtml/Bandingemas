@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Token dari DESIGN.md (milik pemilik produk).
-  Emas taktis: harga utama, indikator aktif, highlight. Sisanya netral.
+  Token mengikuti DESIGN.md milik pemilik produk.
+  Emas dipakai hemat: angka utama, peringkat, dan penanda aktif.
 */
 :root {
   --background: #f8f9fa;
@@ -22,25 +22,30 @@
   --muted-foreground: #4b5563;
   --accent: #fdf9ee;
   --accent-foreground: #8a650f;
-  --destructive: #ef4444;
-  --destructive-foreground: #ef4444;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fef2f2;
   --border: #e5e7eb;
   --input: #e5e7eb;
-  --ring: #b48518;
+  --ring: #8a650f;
   --gold: #b48518;
   --gold-strong: #8a650f;
   --gold-surface: #fdf9ee;
-  --gold-border: #f1e3b8;
-  --positive: #10b981;
+  --gold-border: #e5d399;
+  --positive: #047857;
   --positive-surface: #ecfdf5;
-  --negative: #ef4444;
+  --negative: #b91c1c;
   --negative-surface: #fef2f2;
-  --chart-1: #b48518;
+  /* Permukaan kontras untuk ticker dan kalkulator; tetap gelap di kedua tema. */
+  --strong: #14171a;
+  --strong-foreground: #f9fafb;
+  --strong-muted: #a1a7b0;
+  --strong-border: #2a2e33;
+  --chart-1: #8a650f;
   --chart-2: #4b5563;
   --chart-3: #9ca3af;
   --chart-4: #6b7280;
   --chart-5: #374151;
-  --radius: 1rem;
+  --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #111827;
   --sidebar-primary: #111827;
@@ -48,7 +53,7 @@
   --sidebar-accent: #f3f4f6;
   --sidebar-accent-foreground: #111827;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #b48518;
+  --sidebar-ring: #8a650f;
 }
 
 .dark {
@@ -66,8 +71,8 @@
   --muted-foreground: #9ca3af;
   --accent: #2a2313;
   --accent-foreground: #c89922;
-  --destructive: #ef4444;
-  --destructive-foreground: #ef4444;
+  --destructive: #f87171;
+  --destructive-foreground: #2b1212;
   --border: #2a2e33;
   --input: #2a2e33;
   --ring: #c89922;
@@ -75,10 +80,14 @@
   --gold-strong: #c89922;
   --gold-surface: #2a2313;
   --gold-border: #4d3d14;
-  --positive: #10b981;
+  --positive: #34d399;
   --positive-surface: #0d2b22;
-  --negative: #ef4444;
+  --negative: #f87171;
   --negative-surface: #2b1212;
+  --strong: #1a1d20;
+  --strong-foreground: #f9fafb;
+  --strong-muted: #9ca3af;
+  --strong-border: #2a2e33;
   --chart-1: #c89922;
   --chart-2: #9ca3af;
   --chart-3: #6b7280;
@@ -122,16 +131,20 @@
   --color-positive-surface: var(--positive-surface);
   --color-negative: var(--negative);
   --color-negative-surface: var(--negative-surface);
+  --color-strong: var(--strong);
+  --color-strong-foreground: var(--strong-foreground);
+  --color-strong-muted: var(--strong-muted);
+  --color-strong-border: var(--strong-border);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  /* Radius per DESIGN.md: kartu 16px, tombol/chip 12px, pil status penuh */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
+  /* Skala radius sempit: kontrol 6px, panel 8px, tidak ada kartu pil. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -147,8 +160,36 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
-    @apply bg-background font-sans text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  ::selection {
+    background: var(--gold);
+    color: #111315;
+  }
+  /* Komponen shadcn memakai ring sendiri; elemen kustom mendapat outline jelas. */
+  :where(a, button, [role="button"], input, select, textarea):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Permukaan gelap: teks, border, dan ikon kontrol tetap terbaca di kedua tema. */
+  .on-strong [data-slot="input"],
+  .on-strong [data-slot="select-trigger"] {
+    border-color: var(--strong-border);
+    background: transparent;
+    color: var(--strong-foreground);
+  }
+  .on-strong [data-slot="input"]::placeholder {
+    color: var(--strong-muted);
+  }
+  .on-strong [data-slot="select-trigger"] svg {
+    color: var(--strong-muted);
   }
 }
 

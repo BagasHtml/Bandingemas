@@ -19,45 +19,42 @@ function initials(name: string | undefined): string {
 </script>
 
 <template>
-  <!-- Kartu direktori (DESIGN.md 5.4): tautan ke detail + portal resmi -->
-  <div
-    class="flex items-center gap-3 rounded-2xl border bg-card p-5 transition-colors duration-150 hover:bg-[#f9fafb] dark:hover:bg-[#26292d]"
-  >
+  <div class="flex min-h-16 items-center gap-3 border-b py-3">
     <span
-      class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-border"
+      class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-white p-1"
     >
       <img
         v-if="LOGOS[source.name]"
         :src="LOGOS[source.name]"
         :alt="`Logo ${source.displayName ?? source.name}`"
-        class="size-7 object-contain"
+        class="size-full object-contain"
         loading="lazy"
       />
-      <template v-else>
-        <span class="text-xs font-bold text-gold-strong">{{ initials(source.displayName) }}</span>
-      </template>
+      <span v-else class="text-xs font-bold text-gold-strong">{{ initials(source.displayName) }}</span>
     </span>
 
-    <div class="min-w-0 flex-1">
-      <RouterLink
-        :to="`/sumber/${source.name}`"
-        class="block truncate text-sm font-semibold underline-offset-4 hover:underline"
+    <RouterLink
+      :to="`/sumber/${source.name}`"
+      class="group flex min-h-11 min-w-0 flex-1 flex-col justify-center"
+    >
+      <span
+        class="block truncate text-sm font-medium underline-offset-4 group-hover:underline"
       >
         {{ source.displayName ?? source.name }}
-      </RouterLink>
-      <p class="truncate text-xs text-muted-foreground">Lihat harga lengkap</p>
-    </div>
+      </span>
+      <span class="block text-xs text-muted-foreground">Lihat harga dan riwayat</span>
+    </RouterLink>
 
     <a
       v-if="source.urlHomepage"
       :href="source.urlHomepage"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex shrink-0 items-center gap-1 text-xs font-medium text-gold-strong underline-offset-4 hover:underline"
-      :title="`Buka situs ${source.displayName ?? source.name}`"
+      class="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      :aria-label="`Buka situs ${source.displayName ?? source.name} di tab baru`"
     >
       Situs
-      <ExternalLink class="size-3" />
+      <ExternalLink class="size-3.5" aria-hidden="true" />
     </a>
   </div>
 </template>

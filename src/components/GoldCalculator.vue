@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useComparison } from '@/composables/useComparison'
-import { formatRupiah } from '@/lib/format'
+import { formatRupiah, formatDate } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -13,13 +14,22 @@ import {
 import { Input } from '@/components/ui/input'
 
 /*
- * Kalkulator simulasi (DESIGN.md 5.5): fokus interaksi, mengikuti tema
- * terang/gelap. Kalkulasi instan dari harga nyata sumber terpilih.
+ * Kalkulator simulasi (DESIGN.md 5.5): hitung total beli dan buyback bersih
+ * dari harga nyata perantara terpilih.
  */
 const { goldSpots, isLoading } = useComparison()
 
 const grams = ref<number | string>(1)
 const selectedSource = ref<string>('')
+
+// Isi pilihan awal supaya kontrol tidak tampil seperti placeholder kosong
+watch(
+  goldSpots,
+  (spots) => {
+    if (!selectedSource.value && spots[0]) selectedSource.value = spots[0].source
+  },
+  { immediate: true },
+)
 
 const activeSpot = computed(() => {
   const found = goldSpots.value.find((s) => s.source === selectedSource.value)
@@ -49,116 +59,110 @@ const spreadLoss = computed(() => {
 </script>
 
 <template>
-  <section class="rounded-2xl border bg-card p-6 sm:p-8">
-    <h2 class="text-lg font-bold tracking-[-0.02em]">Kalkulator Simulasi Emas</h2>
-    <p class="mt-1 text-sm text-muted-foreground">
-      Hitung estimasi beli dan proyeksi buyback dari harga perantara pilihanmu.
-    </p>
-
-    <div v-if="isLoading" aria-busy="true" class="mt-6">
-      <span class="sr-only">Memuat kalkulator...</span>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <Skeleton class="h-16" />
-        <Skeleton class="h-16" />
-      </div>
-      <div class="mt-6 grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
-        <Skeleton v-for="i in 3" :key="i" class="h-14" />
-      </div>
-    </div>
-
-    <template v-else-if="activeSpot">
-      <div class="mt-6 grid gap-4 sm:grid-cols-2">
+  <section
+    class="on-strong -mx-4 bg-strong px-5 py-10 text-strong-foreground sm:-mx-6 sm:px-10 sm:py-12"
+    aria-labelledby="kalkulator-title"
+  >
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16">
+      <div class="flex flex-col gap-6">
         <div>
-          <label
-            for="calc-grams"
-            class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground"
-          >
-            Gramasi
-          </label>
-          <Input
-            id="calc-grams"
-            v-model="grams"
-            type="number"
-            min="0"
-            step="0.5"
-            inputmode="decimal"
-            class="mt-2 h-11 tabular-nums sm:h-9"
-            placeholder="contoh: 10"
-          />
-        </div>
-        <div>
-          <label
-            class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground"
-          >
-            Acuan harga
-          </label>
-          <Select v-model="selectedSource">
-            <SelectTrigger class="mt-2 h-11 w-full sm:h-9">
-              <SelectValue :placeholder="activeSpot.displayName" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="spot in goldSpots" :key="spot.source" :value="spot.source">
-                {{ spot.displayName }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <dl class="mt-6 grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
-        <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            Estimasi total beli
-          </dt>
-          <dd class="mt-1 text-xl font-bold tabular-nums sm:text-2xl">
-            {{ totalBuy === null ? '-' : formatRupiah(totalBuy) }}
-          </dd>
-          <p class="mt-1 text-xs text-muted-foreground">
-            {{
-              gramCount === null
-                ? 'masukkan gramasi'
-                : `${gramCount} g × ${formatRupiah(activeSpot.pricePerGram)}`
-            }}
+          <h2 id="kalkulator-title" class="text-xl font-semibold tracking-tight">
+            Kalkulator emas
+          </h2>
+          <p class="mt-2 text-sm leading-relaxed text-strong-muted">
+            Hitung total beli dan buyback bersih dari harga perantara pilihanmu.
           </p>
         </div>
-        <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            Proyeksi buyback bersih
-          </dt>
-          <dd
-            class="mt-1 text-xl font-bold tabular-nums sm:text-2xl"
-            :class="netBuyback === null ? '' : 'text-gold-strong'"
-          >
-            {{ netBuyback === null ? 'tidak tersedia' : formatRupiah(netBuyback) }}
-          </dd>
-          <p v-if="netBuyback !== null" class="mt-1 text-xs text-muted-foreground">
-            {{
-              gramCount === null
-                ? ''
-                : `${gramCount} g × ${formatRupiah(activeSpot.buybackPerGram)}`
-            }}
-          </p>
-        </div>
-        <div>
-          <dt class="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            Selisih beli vs buyback
-          </dt>
-          <dd class="mt-1 text-xl font-bold tabular-nums sm:text-2xl">
-            {{ spreadLoss === null ? '-' : formatRupiah(spreadLoss) }}
-          </dd>
-          <p class="mt-1 text-xs text-muted-foreground">perkiraan biaya likuidasi</p>
-        </div>
-      </dl>
 
-      <p class="mt-6 text-xs text-muted-foreground">
-        Simulasi berdasarkan harga {{ activeSpot.displayName }} tanggal
-        {{ activeSpot.recordedDate }}. Angka riil dapat berbeda karena ongkos buat, pajak, dan
-        kebijakan masing-masing perantara.
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="flex flex-col gap-2">
+            <label for="calc-grams" class="text-xs font-medium text-strong-muted">Gramasi</label>
+            <Input
+              id="calc-grams"
+              v-model="grams"
+              type="number"
+              min="0"
+              step="0.5"
+              inputmode="decimal"
+              class="h-11 tabular-nums"
+              placeholder="contoh: 10"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <span id="calc-source-label" class="text-xs font-medium text-strong-muted">
+              Acuan harga
+            </span>
+            <Select v-model="selectedSource">
+              <SelectTrigger
+                class="w-full data-[size=default]:h-11"
+                aria-labelledby="calc-source-label"
+              >
+                <SelectValue :placeholder="activeSpot?.displayName ?? 'Pilih perantara'" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem v-for="spot in goldSpots" :key="spot.source" :value="spot.source">
+                    {{ spot.displayName }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="isLoading" aria-busy="true">
+        <span class="sr-only">Memuat kalkulator...</span>
+        <div class="grid gap-6 sm:grid-cols-3">
+          <Skeleton v-for="i in 3" :key="i" class="h-16 bg-white/10" />
+        </div>
+      </div>
+
+      <div v-else-if="activeSpot" class="flex flex-col gap-6">
+        <dl class="grid gap-6 sm:grid-cols-3 lg:border-l lg:border-strong-border lg:pl-12">
+          <div>
+            <dt class="text-xs text-strong-muted">Total beli</dt>
+            <dd class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
+              {{ totalBuy === null ? '-' : formatRupiah(totalBuy) }}
+            </dd>
+            <p class="mt-1 text-xs tabular-nums text-strong-muted">
+              {{
+                gramCount === null || totalBuy === null
+                  ? 'masukkan gramasi'
+                  : `${gramCount} g × ${formatRupiah(activeSpot.pricePerGram)}`
+              }}
+            </p>
+          </div>
+          <div>
+            <dt class="text-xs text-strong-muted">Buyback bersih</dt>
+            <dd
+              class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight"
+              :class="netBuyback === null ? 'text-strong-muted' : 'text-gold'"
+            >
+              {{ netBuyback === null ? 'tidak tersedia' : formatRupiah(netBuyback) }}
+            </dd>
+            <p v-if="netBuyback !== null" class="mt-1 text-xs tabular-nums text-strong-muted">
+              {{ gramCount }} g × {{ formatRupiah(activeSpot.buybackPerGram) }}
+            </p>
+          </div>
+          <div>
+            <dt class="text-xs text-strong-muted">Selisih</dt>
+            <dd class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
+              {{ spreadLoss === null ? '-' : formatRupiah(spreadLoss) }}
+            </dd>
+            <p class="mt-1 text-xs text-strong-muted">perkiraan biaya likuidasi</p>
+          </div>
+        </dl>
+
+        <p class="text-xs leading-relaxed text-strong-muted">
+          Berdasarkan harga {{ activeSpot.displayName }} per {{ formatDate(activeSpot.recordedDate) }}.
+          Angka riil bisa berbeda karena ongkos buat, pajak, dan kebijakan tiap perantara.
+        </p>
+      </div>
+
+      <p v-else class="text-sm text-strong-muted">
+        Harga perantara sedang tidak tersedia, kalkulator belum bisa dihitung.
       </p>
-    </template>
-
-    <p v-else class="mt-6 text-sm text-muted-foreground">
-      Harga perantara sedang tidak tersedia, kalkulator belum bisa dihitung.
-    </p>
+    </div>
   </section>
 </template>

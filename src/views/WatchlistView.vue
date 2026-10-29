@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -29,7 +30,6 @@ import { Plus, RefreshCw, Trash2 } from '@lucide/vue'
 const { sources, isLoading: sourcesLoading, fetchSources } = useSources()
 const { items, add, remove } = useWatchlist()
 
-// Bentuk item harga saat ini dari API, untuk cek status tiap pantauan
 interface WatchStatus {
   state: 'ok' | 'missing' | 'nobuyback' | 'nodata'
   price: number | null
@@ -47,7 +47,6 @@ async function loadPrices(): Promise<void> {
   pricesLoading.value = true
   pricesError.value = null
 
-  // Sama seperti useComparison: jeda antar request yang benar-benar ke jaringan
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
   const results = await Promise.allSettled(
     uniqueSources.map((source, index) =>
@@ -82,8 +81,7 @@ function statusFor(item: WatchItem): WatchStatus {
   const res = priceMap.value[item.source]
   if (!res) return { state: 'nodata', price: null, met: false, recorded: null }
 
-  // Quote yang buybacknya di atas harga jual dianggap rusak, sama seperti
-  // aturan di useComparison
+  // Quote dengan buyback di atas harga jual dianggap rusak, sama seperti useComparison
   const match = res.data.find(
     (x) =>
       x.material === item.material &&
@@ -113,18 +111,22 @@ function statusFor(item: WatchItem): WatchStatus {
   }
 }
 
-// Form tambah pantauan
 const formSource = ref('')
 const formMaterial = ref<WatchMaterial>('gold')
-const formWeight = ref('1')
-const formTarget = ref('')
+const formWeight = ref<number | string>('1')
+const formTarget = ref<number | string>('')
 const formDirection = ref<WatchDirection>('below')
 const formError = ref<string | null>(null)
 
+// Input number mengembalikan angka; ketikan manual bisa berupa teks berkoma
+function toNumber(value: number | string): number {
+  return typeof value === 'number' ? value : Number.parseFloat(value.replace(',', '.'))
+}
+
 function submit(): void {
   formError.value = null
-  const weight = Number.parseFloat(formWeight.value.replace(',', '.'))
-  const target = Number.parseFloat(formTarget.value.replace(',', '.'))
+  const weight = toNumber(formWeight.value)
+  const target = toNumber(formTarget.value)
   if (!formSource.value) {
     formError.value = 'Pilih perantara dulu.'
     return
@@ -155,7 +157,6 @@ onMounted(() => {
   loadPrices()
 })
 
-// Pantauan baru perlu harga terbaru untuk dinilai
 watch(
   () => items.value.length,
   () => loadPrices(),
@@ -174,214 +175,231 @@ function directionLabel(direction: WatchDirection): string {
 }
 
 const hasItems = computed(() => items.value.length > 0)
+
+const rows = computed(() => items.value.map((item) => ({ item, status: statusFor(item) })))
+
+function focusForm(): void {
+  const el = document.getElementById('watch-source')
+  el?.scrollIntoView({
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    block: 'center',
+  })
+  el?.focus({ preventScroll: true })
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl space-y-8">
-    <header>
-      <h1 class="text-2xl font-extrabold tracking-[-0.03em]">Pantauan Harga</h1>
-      <p class="mt-2 text-sm text-muted-foreground">
-        Simpan produk yang kamu incar beserta harga targetnya. Status dicek
-        otomatis dari harga terbaru tiap kali halaman dibuka. Daftar disimpan di
-        perangkatmu, tanpa akun.
+  <div class="flex flex-col gap-10">
+    <header class="border-b pb-6">
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Pantauan harga</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        Simpan produk incaran beserta harga targetnya. Status dicek dari harga terbaru tiap kali
+        halaman dibuka. Daftar tersimpan di perangkatmu, tanpa akun.
       </p>
     </header>
 
-    <!-- Form tambah pantauan -->
-    <section class="rounded-2xl border bg-card p-6">
-      <h2 class="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-        Tambah pantauan
-      </h2>
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start lg:gap-16">
+      <section aria-labelledby="tambah-title" class="lg:sticky lg:top-6">
+        <h2 id="tambah-title" class="border-b pb-3 text-sm font-semibold">Tambah pantauan</h2>
 
-      <div class="mt-4 grid gap-4 sm:grid-cols-2">
-        <div>
-          <label class="text-xs font-semibold text-muted-foreground" for="watch-source">
-            Perantara
-          </label>
-          <Select v-model="formSource">
-            <SelectTrigger id="watch-source" class="mt-1.5 h-11 w-full sm:h-9">
-              <SelectValue :placeholder="sourcesLoading ? 'Memuat...' : 'Pilih perantara'" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="source in sources" :key="source.name" :value="source.name">
-                {{ source.displayName ?? source.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-muted-foreground" for="watch-material">
-            Material
-          </label>
-          <Select v-model="formMaterial">
-            <SelectTrigger id="watch-material" class="mt-1.5 h-11 w-full sm:h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gold">Emas</SelectItem>
-              <SelectItem value="silver">Perak</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-muted-foreground" for="watch-weight">
-            Berat (gram)
-          </label>
-          <Input
-            id="watch-weight"
-            v-model="formWeight"
-            type="number"
-            min="0.01"
-            step="0.01"
-            class="mt-1.5 h-11 sm:h-9"
-          />
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-muted-foreground" for="watch-target">
-            Harga target (Rp)
-          </label>
-          <Input
-            id="watch-target"
-            v-model="formTarget"
-            type="number"
-            min="1"
-            step="1000"
-            placeholder="mis. 2400000"
-            class="mt-1.5 h-11 sm:h-9"
-          />
-        </div>
-
-        <div class="sm:col-span-2">
-          <label class="text-xs font-semibold text-muted-foreground" for="watch-direction">
-            Rencana
-          </label>
-          <Select v-model="formDirection">
-            <SelectTrigger id="watch-direction" class="mt-1.5 h-11 w-full sm:h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="below">Beli saat harga turun ke target</SelectItem>
-              <SelectItem value="above">Jual saat buyback naik ke target</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <p v-if="formError" class="mt-3 text-sm font-medium text-destructive">{{ formError }}</p>
-
-      <Button class="mt-4 h-11 rounded-xl px-5 sm:h-10" :disabled="sourcesLoading" @click="submit">
-        <Plus class="size-4" />
-        Tambah pantauan
-      </Button>
-    </section>
-
-    <!-- Daftar pantauan -->
-    <section>
-      <div class="mb-4 flex items-center justify-between gap-2">
-        <h2 class="text-lg font-bold tracking-[-0.02em]">
-          Daftar pantauan
-          <span v-if="hasItems" class="ml-1 text-sm font-medium text-muted-foreground">
-            ({{ items.length }})
-          </span>
-        </h2>
-        <Button
-          v-if="hasItems"
-          variant="outline"
-          size="sm"
-          :disabled="pricesLoading"
-          @click="loadPrices"
-        >
-          <RefreshCw class="size-4" :class="{ 'animate-spin': pricesLoading }" />
-          Segarkan
-        </Button>
-      </div>
-
-      <Alert v-if="pricesError && !pricesLoading" variant="destructive" class="mb-4">
-        <AlertTitle>Gagal memuat harga</AlertTitle>
-        <AlertDescription class="flex flex-wrap items-center gap-3">
-          <span>{{ pricesError }}</span>
-          <Button size="sm" variant="outline" @click="loadPrices">
-            <RefreshCw class="size-4" />
-            Coba lagi
-          </Button>
-        </AlertDescription>
-      </Alert>
-
-      <!-- Loading: kerangka daftar -->
-      <div v-if="pricesLoading && hasItems" aria-busy="true" class="space-y-3">
-        <span class="sr-only">Memuat harga pantauan...</span>
-        <Skeleton v-for="i in Math.min(items.length, 4)" :key="i" class="h-20 w-full rounded-2xl" />
-      </div>
-
-      <div v-else-if="hasItems" class="space-y-3">
-        <div
-          v-for="item in items"
-          :key="item.id"
-          class="flex items-center justify-between gap-4 rounded-2xl border bg-card p-4 sm:p-5"
-        >
-          <div class="min-w-0">
-            <p class="truncate font-semibold">{{ productLabel(item) }}</p>
-            <p class="mt-0.5 text-xs text-muted-foreground">
-              {{ item.sourceName }} · {{ directionLabel(item.direction) }} ·
-              target {{ formatRupiah(item.target) }}
-            </p>
+        <form class="mt-5 flex flex-col gap-4" @submit.prevent="submit">
+          <div class="flex flex-col gap-1.5">
+            <label for="watch-source" class="text-xs font-medium text-muted-foreground">
+              Perantara
+            </label>
+            <Select v-model="formSource">
+              <SelectTrigger id="watch-source" class="w-full data-[size=default]:h-11">
+                <SelectValue :placeholder="sourcesLoading ? 'Memuat...' : 'Pilih perantara'" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem v-for="source in sources" :key="source.name" :value="source.name">
+                    {{ source.displayName ?? source.name }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div class="flex shrink-0 items-center gap-3">
-            <div class="text-right">
-              <p v-if="statusFor(item).state === 'ok'" class="font-bold tabular-nums">
-                {{ formatRupiah(statusFor(item).price) }}
-              </p>
-              <p v-else-if="statusFor(item).state === 'nobuyback'" class="text-xs text-muted-foreground">
-                Buyback tidak tersedia
-              </p>
-              <p v-else-if="statusFor(item).state === 'missing'" class="text-xs text-muted-foreground">
-                Produk tidak ditemukan
-              </p>
-              <p v-else class="text-xs text-muted-foreground">Harga belum tersedia</p>
+          <div class="flex flex-col gap-1.5">
+            <label for="watch-material" class="text-xs font-medium text-muted-foreground">
+              Material
+            </label>
+            <Select v-model="formMaterial">
+              <SelectTrigger id="watch-material" class="w-full data-[size=default]:h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="gold">Emas</SelectItem>
+                  <SelectItem value="silver">Perak</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <p
-                v-if="statusFor(item).state === 'ok' && statusFor(item).recorded"
-                class="text-[10px] text-muted-foreground"
-              >
-                tercatat {{ formatDate(statusFor(item).recorded) }}
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label for="watch-weight" class="text-xs font-medium text-muted-foreground">
+                Berat (gram)
+              </label>
+              <Input
+                id="watch-weight"
+                v-model="formWeight"
+                type="number"
+                min="0.01"
+                step="0.01"
+                class="h-11 tabular-nums"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="watch-target" class="text-xs font-medium text-muted-foreground">
+                Target (Rp)
+              </label>
+              <Input
+                id="watch-target"
+                v-model="formTarget"
+                type="number"
+                min="0"
+                step="1000"
+                placeholder="2400000"
+                class="h-11 tabular-nums"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="watch-direction" class="text-xs font-medium text-muted-foreground">
+              Rencana
+            </label>
+            <Select v-model="formDirection">
+              <SelectTrigger id="watch-direction" class="w-full data-[size=default]:h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="below">Beli saat harga turun ke target</SelectItem>
+                  <SelectItem value="above">Jual saat buyback naik ke target</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <p v-if="formError" role="alert" class="text-sm font-medium text-destructive">
+            {{ formError }}
+          </p>
+
+          <Button type="submit" class="h-11 w-full" :disabled="sourcesLoading">
+            <Plus class="size-4" />
+            Tambah pantauan
+          </Button>
+        </form>
+      </section>
+
+      <section aria-labelledby="daftar-title">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+          <h2 id="daftar-title" class="text-sm font-semibold">
+            Daftar pantauan
+            <span v-if="hasItems" class="ml-1 font-normal tabular-nums text-muted-foreground">
+              {{ items.length }}
+            </span>
+          </h2>
+          <Button
+            v-if="hasItems"
+            variant="outline"
+            size="sm"
+            class="h-9"
+            :disabled="pricesLoading"
+            @click="loadPrices"
+          >
+            <RefreshCw class="size-4" :class="{ 'animate-spin': pricesLoading }" />
+            Segarkan
+          </Button>
+        </div>
+
+        <Alert v-if="pricesError && !pricesLoading" variant="destructive" class="mt-4">
+          <AlertTitle>Gagal memuat harga</AlertTitle>
+          <AlertDescription class="flex flex-wrap items-center gap-3">
+            <span>{{ pricesError }}</span>
+            <Button size="sm" variant="outline" @click="loadPrices">
+              <RefreshCw class="size-4" />
+              Coba lagi
+            </Button>
+          </AlertDescription>
+        </Alert>
+
+        <div v-if="pricesLoading && hasItems" aria-busy="true" class="mt-2">
+          <span class="sr-only">Memuat harga pantauan...</span>
+          <Skeleton
+            v-for="i in Math.min(items.length, 4)"
+            :key="i"
+            class="mt-2 h-16 w-full rounded-none"
+          />
+        </div>
+
+        <ul v-else-if="hasItems" class="divide-y">
+          <li
+            v-for="{ item, status } in rows"
+            :key="item.id"
+            class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+          >
+            <div class="min-w-0">
+              <p class="text-sm font-semibold">{{ productLabel(item) }}</p>
+              <p class="mt-0.5 text-xs text-muted-foreground">
+                {{ item.sourceName }} · {{ directionLabel(item.direction) }} · target
+                {{ formatRupiah(item.target) }}
               </p>
             </div>
 
-            <Badge
-              v-if="statusFor(item).state === 'ok'"
-              :class="
-                statusFor(item).met
-                  ? 'border-emerald-600/30 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
-                  : ''
-              "
-              :variant="statusFor(item).met ? 'outline' : 'secondary'"
-            >
-              {{ statusFor(item).met ? 'Tercapai' : 'Menunggu' }}
-            </Badge>
+            <div class="flex items-center justify-between gap-4 sm:justify-end">
+              <div class="text-left sm:text-right">
+                <p v-if="status.state === 'ok'" class="text-sm font-semibold tabular-nums">
+                  {{ formatRupiah(status.price) }}
+                </p>
+                <p v-else-if="status.state === 'nobuyback'" class="text-xs text-muted-foreground">
+                  Buyback tidak tersedia
+                </p>
+                <p v-else-if="status.state === 'missing'" class="text-xs text-muted-foreground">
+                  Produk tidak ditemukan
+                </p>
+                <p v-else class="text-xs text-muted-foreground">Harga belum tersedia</p>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              class="size-11 text-muted-foreground hover:text-destructive"
-              :title="`Hapus pantauan ${productLabel(item)}`"
-              @click="remove(item.id)"
-            >
-              <Trash2 class="size-4" />
-            </Button>
-          </div>
+                <p v-if="status.recorded" class="text-[11px] tabular-nums text-muted-foreground">
+                  tercatat {{ formatDate(status.recorded) }}
+                </p>
+              </div>
+
+              <Badge
+                v-if="status.state === 'ok'"
+                :variant="status.met ? 'outline' : 'secondary'"
+                :class="
+                  status.met ? 'border-positive/40 bg-positive-surface text-positive' : ''
+                "
+              >
+                {{ status.met ? 'Tercapai' : 'Menunggu' }}
+              </Badge>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                class="size-11 shrink-0 text-muted-foreground hover:text-destructive"
+                :aria-label="`Hapus pantauan ${productLabel(item)}`"
+                @click="remove(item.id)"
+              >
+                <Trash2 class="size-4" />
+              </Button>
+            </div>
+          </li>
+        </ul>
+
+        <div v-else class="flex flex-col items-start gap-4 py-10">
+          <p class="max-w-md text-sm leading-relaxed text-muted-foreground">
+            Belum ada pantauan. Tambahkan produk incaranmu, misalnya emas 10 gram di Pegadaian
+            dengan target harga tertentu.
+          </p>
+          <Button variant="outline" @click="focusForm">Tambah pantauan</Button>
         </div>
-      </div>
-
-      <div v-else class="rounded-2xl border border-dashed p-8 text-center">
-        <p class="text-sm text-muted-foreground">
-          Belum ada pantauan. Tambahkan produk incaranmu di formulir atas, misalnya
-          emas 10 gram di Pegadaian dengan target harga tertentu.
-        </p>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
