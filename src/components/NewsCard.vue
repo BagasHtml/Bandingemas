@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NewsItem } from '@/api/types'
+import type { NewsItem } from '@/api/emas/types'
 import { formatDateTime } from '@/lib/format'
 
 defineProps<{

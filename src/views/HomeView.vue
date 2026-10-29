@@ -6,10 +6,13 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import HeroPriceCard from '@/components/HeroPriceCard.vue'
+import GoldTrendChart from '@/components/GoldTrendChart.vue'
 import ComparisonTable from '@/components/ComparisonTable.vue'
+import ArbitrageRadar from '@/components/ArbitrageRadar.vue'
 import GoldEstimateChart from '@/components/GoldEstimateChart.vue'
 import LiquidityLeague from '@/components/LiquidityLeague.vue'
 import GoldCalculator from '@/components/GoldCalculator.vue'
+import FractionEfficiency from '@/components/FractionEfficiency.vue'
 import SourceRow from '@/components/SourceRow.vue'
 import { RefreshCw } from '@lucide/vue'
 
@@ -24,6 +27,8 @@ onMounted(() => {
   <div class="flex flex-col gap-14 sm:gap-20">
     <HeroPriceCard />
 
+    <GoldTrendChart />
+
     <section class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
       <ComparisonTable />
 
@@ -31,6 +36,8 @@ onMounted(() => {
         aria-label="Bacaan pasar"
         class="flex flex-col gap-8 lg:border-l lg:border-border lg:pl-10"
       >
+        <ArbitrageRadar />
+        <Separator />
         <GoldEstimateChart />
         <Separator />
         <LiquidityLeague />
@@ -38,6 +45,8 @@ onMounted(() => {
     </section>
 
     <GoldCalculator />
+
+    <FractionEfficiency />
 
     <section aria-labelledby="direktori-title">
       <div class="flex flex-wrap items-baseline justify-between gap-2 border-b pb-4">

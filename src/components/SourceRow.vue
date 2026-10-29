@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SourceInfo } from '@/api/types'
+import type { SourceInfo } from '@/api/emas/types'
 import { LOGOS } from '@/lib/logos'
 import { ExternalLink } from '@lucide/vue'
 
@@ -30,16 +30,16 @@ function initials(name: string | undefined): string {
         class="size-full object-contain"
         loading="lazy"
       />
-      <span v-else class="text-xs font-bold text-gold-strong">{{ initials(source.displayName) }}</span>
+      <span v-else class="text-xs font-bold text-gold-strong">{{
+        initials(source.displayName)
+      }}</span>
     </span>
 
     <RouterLink
       :to="`/sumber/${source.name}`"
       class="group flex min-h-11 min-w-0 flex-1 flex-col justify-center"
     >
-      <span
-        class="block truncate text-sm font-medium underline-offset-4 group-hover:underline"
-      >
+      <span class="block truncate text-sm font-medium underline-offset-4 group-hover:underline">
         {{ source.displayName ?? source.name }}
       </span>
       <span class="block text-xs text-muted-foreground">Lihat harga dan riwayat</span>

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { getPrices } from '@/api/client'
-import type { PriceItem } from '@/api/types'
+import { getPrices } from '@/api/emas/client'
+import type { PriceItem } from '@/api/emas/types'
 
 export function usePrices(source: string) {
   const prices = ref<PriceItem[]>([])

@@ -8,9 +8,9 @@ import {
   type WatchMaterial,
 } from '@/composables/useWatchlist'
 import { GRAM_UNITS } from '@/composables/useComparison'
-import { getPrices } from '@/api/client'
+import { getPrices } from '@/api/emas/client'
 import { hasFresh } from '@/api/cache'
-import type { PriceResponse } from '@/api/types'
+import type { PriceResponse } from '@/api/emas/types'
 import { formatRupiah, formatDate } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -372,9 +372,7 @@ function focusForm(): void {
               <Badge
                 v-if="status.state === 'ok'"
                 :variant="status.met ? 'outline' : 'secondary'"
-                :class="
-                  status.met ? 'border-positive/40 bg-positive-surface text-positive' : ''
-                "
+                :class="status.met ? 'border-positive/40 bg-positive-surface text-positive' : ''"
               >
                 {{ status.met ? 'Tercapai' : 'Menunggu' }}
               </Badge>

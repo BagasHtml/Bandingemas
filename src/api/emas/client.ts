@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { cached, TTL } from './cache'
+import { cached, TTL } from '../cache'
 import type {
   ErrorResponse,
   HistoryResponse,

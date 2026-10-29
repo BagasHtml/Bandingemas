@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { getPriceHistory } from '@/api/client'
-import type { HistoryItem } from '@/api/types'
+import { computed, ref } from 'vue'
 import { useComparison, GRAM_OPTIONS } from '@/composables/useComparison'
+import { useLowestHistory } from '@/composables/useLowestHistory'
 import { formatRupiah, formatDate, formatPercent } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,9 +9,13 @@ import { RefreshCw } from '@lucide/vue'
 import { VisArea, VisLine, VisXYContainer } from '@unovis/vue'
 
 const { goldSpots, isLoading, fetchComparison } = useComparison()
+const {
+  chartPoints,
+  isLoading: historyLoading,
+  lowest,
+} = useLowestHistory()
 
-const lowest = computed(() => goldSpots.value[0] ?? null)
-const highest = computed(() => goldSpots.value[goldSpots.value.length - 1] ?? null)
+const highest = computed(() => goldSpots.value.at(-1) ?? null)
 
 const spread = computed(() => {
   if (!lowest.value || !highest.value || lowest.value === highest.value) return null
@@ -31,56 +34,23 @@ const estimate = computed(() => {
   return lowest.value.pricePerGram * selectedGram.value
 })
 
-const history = ref<HistoryItem[]>([])
-const historyLoading = ref(false)
-
-watch(
-  lowest,
-  async (spot) => {
-    if (!spot) return
-    historyLoading.value = true
-    try {
-      const res = await getPriceHistory(spot.source, {
-        material: 'gold',
-        weight: 1,
-        length: 30,
-      })
-      if (res.success) history.value = res.data
-    } catch {
-      history.value = []
-    } finally {
-      historyLoading.value = false
-    }
-  },
-  { immediate: true },
-)
-
-const dailyPrices = computed(() => {
-  const byDate = new Map<string, number>()
-  for (const item of history.value) {
-    byDate.set(item.recordedDate, item.sellPrice)
-  }
-  return [...byDate.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, price]) => price)
-})
-
 const change30d = computed(() => {
-  const prices = dailyPrices.value
-  if (prices.length < 2) return null
-  const first = prices[0]
-  const last = prices[prices.length - 1]
-  if (first === undefined || last === undefined || first === 0) return null
-  return ((last - first) / first) * 100
+  const points = chartPoints.value
+  const first = points[0]
+  const lastPoint = points.at(-1)
+  if (!first || !lastPoint || first.price === 0) return null
+  return ((lastPoint.price - first.price) / first.price) * 100
 })
 
-const sparklineData = computed(() => dailyPrices.value.slice(-7))
+const sparklineData = computed(() => chartPoints.value.slice(-7).map((point) => point.price))
 
 const sparklineStats = computed(() => {
   const prices = sparklineData.value
   if (prices.length === 0) return null
   return { min: Math.min(...prices), max: Math.max(...prices) }
 })
+
+const sparklineFill = 'url(#gold-fade-hero)'
 
 const x = (_: unknown, i: number) => i
 const y = (value: number) => value
@@ -93,7 +63,7 @@ fetchComparison()
 </script>
 
 <template>
-  <section class="border-b pb-10 sm:pb-12" :aria-busy="isLoading">
+  <section class="relative border-b pb-10 sm:pb-12" :aria-busy="isLoading">
     <div class="flex flex-wrap items-baseline justify-between gap-2">
       <h1 class="text-sm font-medium text-muted-foreground">Harga emas terendah hari ini</h1>
       <p v-if="lowest && !isLoading" class="text-xs text-muted-foreground">
@@ -196,9 +166,17 @@ fetchComparison()
             Memuat riwayat...
           </div>
           <div v-else-if="sparklineData.length >= 2" class="mt-3">
+            <svg class="pointer-events-none absolute size-0" aria-hidden="true">
+              <defs>
+                <linearGradient id="gold-fade-hero" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--gold-strong)" stop-opacity="0.35" />
+                  <stop offset="100%" stop-color="var(--gold-strong)" stop-opacity="0.05" />
+                </linearGradient>
+              </defs>
+            </svg>
             <div class="h-24">
               <VisXYContainer :data="sparklineData" :style="{ height: '100%' }" :padding="{ top: 4 }">
-                <VisArea :x="x" :y="y" color="var(--gold-strong)" :opacity="0.12" />
+                <VisArea :x="x" :y="y" :color="sparklineFill" />
                 <VisLine :x="x" :y="y" color="var(--gold-strong)" :stroke-width="1.5" />
               </VisXYContainer>
             </div>

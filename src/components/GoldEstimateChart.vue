@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useComparison } from '@/composables/useComparison'
 import { formatRupiah, formatDate } from '@/lib/format'
+import { median } from '@/lib/stats'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /*
@@ -34,15 +35,7 @@ function widthOf(price: number): string {
 }
 
 // Median: tahan terhadap harga ekstrem dari satu-dua sumber scraping
-function median(values: number[]): number | null {
-  if (values.length === 0) return null
-  const sorted = [...values].sort((a, b) => a - b)
-  const mid = Math.floor(sorted.length / 2)
-  const lower = sorted[mid - 1]
-  const upper = sorted[mid]
-  if (lower === undefined || upper === undefined) return null
-  return sorted.length % 2 === 1 ? upper : Math.round((lower + upper) / 2)
-}
+// (implementasi di lib/stats.ts)
 
 const medianPrice = computed(() => {
   if (goldSpots.value.length < 2) return null

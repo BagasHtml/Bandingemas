@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/select'
 
 /*
- * Biaya main lagi: peringkat perantara berdasarkan selisih harga beli dan
- * buyback di tempat yang sama. Makin kecil, makin murah keluarnya kalau
- * suatu saat mau cair. Data dari API, tanpa karangan.
+ * Biaya cair: peringkat perantara berdasarkan selisih harga beli dan
+ * buyback di tempat yang sama. Makin kecil, makin murah saat emasnya
+ * dijual lagi. Data dari API, tanpa karangan.
  */
 interface LeagueRow {
   spot: SpotPrice
@@ -57,7 +57,7 @@ function formatCostPct(value: number): string {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between gap-3 border-b pb-3">
-      <h2 class="text-sm font-semibold">Biaya main lagi</h2>
+      <h2 class="text-sm font-semibold">Biaya cair</h2>
       <Select v-model="material">
         <SelectTrigger
           size="sm"
@@ -76,11 +76,11 @@ function formatCostPct(value: number): string {
     </div>
 
     <p class="text-xs leading-relaxed text-muted-foreground">
-      Selisih harga beli dan buyback di tempat yang sama. Makin kecil, makin murah saat butuh cair.
+      Selisih harga beli dan buyback di tempat yang sama. Makin kecil, makin murah saat emasnya dijual kembali.
     </p>
 
     <div v-if="isLoading" aria-busy="true">
-      <span class="sr-only">Memuat peringkat biaya likuidasi...</span>
+      <span class="sr-only">Memuat peringkat biaya cair...</span>
       <div class="flex flex-col gap-2">
         <Skeleton v-for="i in 5" :key="i" class="h-8 w-full" />
       </div>

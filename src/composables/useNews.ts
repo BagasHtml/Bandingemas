@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { getNews } from '@/api/client'
-import type { NewsItem } from '@/api/types'
+import { getNews } from '@/api/emas/client'
+import type { NewsItem } from '@/api/emas/types'
 
 export function useNews(source = 'investor-id') {
   const news = ref<NewsItem[]>([])

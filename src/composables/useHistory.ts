@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { getPriceHistory, type HistoryParams } from '@/api/client'
-import type { HistoryItem, HistoryPagination } from '@/api/types'
+import { getPriceHistory, type HistoryParams } from '@/api/emas/client'
+import type { HistoryItem, HistoryPagination } from '@/api/emas/types'
 
 export function useHistory(source: string) {
   const items = ref<HistoryItem[]>([])

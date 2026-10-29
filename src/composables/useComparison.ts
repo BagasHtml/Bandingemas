@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
-import { getPrices } from '@/api/client'
+import { getPrices } from '@/api/emas/client'
 import { hasFresh } from '@/api/cache'
-import type { PriceItem } from '@/api/types'
+import type { PriceItem } from '@/api/emas/types'
 
 // Harga spot satu material dari satu sumber, dinormalisasi per gram
 export interface SpotPrice {
@@ -43,6 +43,15 @@ export const GRAM_OPTIONS = [0.5, 1, 2, 5, 10, 25, 50, 100]
 // Satuan berat di API tidak seragam: "gram" (Pegadaian) dan "gr" (lainnya)
 export const GRAM_UNITS = new Set(['gram', 'gr', 'g'])
 
+// Satu baris harga mentah tanpa seleksi gramasi: untuk analisis pecahan
+export interface WeightQuote {
+  source: string
+  displayName: string
+  material: string
+  weight: number
+  pricePerGram: number
+}
+
 function pickSpot(items: PriceItem[], source: string, material: string): SpotPrice | null {
   const candidates = items.filter(
     (item) =>
@@ -78,9 +87,21 @@ function pickSpot(items: PriceItem[], source: string, material: string): SpotPri
 
 // State modul: satu fetch dipakai bersama oleh ticker, hero, tabel, kalkulator
 const entries = ref<ComparisonEntry[]>([])
+const quotes = ref<WeightQuote[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 let inflight: Promise<void> | null = null
+
+// Kriteria kesehatan kutipan yang sama dengan pickSpot, tapi tanpa seleksi
+// gramasi: satu kutipan rusak jangan meracuni seluruh analisis pecahan.
+function healthy(item: PriceItem): boolean {
+  return (
+    GRAM_UNITS.has(item.weightUnit.toLowerCase()) &&
+    item.weight > 0 &&
+    item.sellPrice > 0 &&
+    !(item.buybackPrice !== null && item.buybackPrice > item.sellPrice)
+  )
+}
 
 async function fetchComparison() {
   if (inflight) return inflight
@@ -96,6 +117,16 @@ async function fetchComparison() {
           await delay(index * 250)
         }
         const res = await getPrices(source)
+        quotes.value = quotes.value.filter((quote) => quote.source !== source)
+        for (const item of res.data.filter(healthy)) {
+          quotes.value.push({
+            source,
+            displayName: item.displayName ?? source,
+            material: item.material,
+            weight: item.weight,
+            pricePerGram: Math.round(item.sellPrice / item.weight),
+          })
+        }
         const spots = [
           pickSpot(res.data, source, 'gold'),
           pickSpot(res.data, source, 'silver'),
@@ -138,6 +169,11 @@ function spotsFor(material: string): SpotPrice[] {
 export function useComparison() {
   const goldSpots = computed(() => spotsFor('gold'))
   const silverSpots = computed(() => spotsFor('silver'))
+  const goldQuotes = computed(() =>
+    [...quotes.value]
+      .filter((quote) => quote.material === 'gold')
+      .sort((a, b) => a.weight - b.weight || a.pricePerGram - b.pricePerGram),
+  )
 
   // Sumber pertama yang berhasil sesuai urutan preferensi, untuk hero
   const hero = computed(() => {
@@ -156,6 +192,7 @@ export function useComparison() {
   return {
     goldSpots,
     silverSpots,
+    goldQuotes,
     hero,
     failedCount,
     isLoading,

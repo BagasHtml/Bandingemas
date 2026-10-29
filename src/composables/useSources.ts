@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import { getSources } from '@/api/client'
-import type { SourceInfo } from '@/api/types'
+import { getSources } from '@/api/emas/client'
+import type { SourceInfo } from '@/api/emas/types'
 
 export function useSources() {
   const sources = ref<SourceInfo[]>([])
