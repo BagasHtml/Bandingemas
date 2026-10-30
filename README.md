@@ -47,9 +47,35 @@ bun run lint     # oxlint + eslint
 bun run test:unit
 ```
 
+## Deploy (Cloudflare Pages)
+
+Build statis ke `dist/`:
+
+```sh
+bun run build
+```
+
+Di Cloudflare Pages, atur build command `bun run build` dan output directory
+`dist`. Cloudflare mengompresi HTML/JS/CSS dengan Brotli/Gzip otomatis.
+
+Fitur saham memakai proxy same-origin di `functions/api`: `/api/companies`
+dan `/api/stock/:ticker` mengambil `/api/universe` dan `/api/history` dari
+`ihsg.midoriresearch.com`, lalu dipetakan ke tipe client. Tidak ada environment
+variable yang wajib. Isi `VITE_SAHAM_API_URL` hanya bila ingin memakai API
+saham lain; origin eksternal itu harus ditambahkan ke direktif `connect-src`
+di `public/_headers`.
+
+`public/_headers` mengatur CSP, HSTS, dan cache aset, `public/_redirects`
+menjadi fallback SPA untuk rute vue-router, dan `public/_routes.json` membatasi
+Pages Functions hanya pada `/api/*`.
+
+`vite preview` tidak menjalankan Pages Functions. Untuk menguji proxy secara
+lokal, jalankan `npx wrangler pages dev dist`.
+
 ## Struktur
 
 ```
+functions/        # proxy API saham (Cloudflare Pages Functions)
 src/
 ├── api/          # Client API bertipe (types.ts, client.ts)
 ├── components/   # TickerBar, HeroPriceCard, ComparisonTable, GoldCalculator, dll

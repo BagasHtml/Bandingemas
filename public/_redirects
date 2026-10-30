@@ -1,0 +1,3 @@
+# SPA fallback: rute vue-router (/saham, /pantauan, /sumber/:source, /berita)
+# dilayani index.html oleh Cloudflare Pages.
+/* /index.html 200

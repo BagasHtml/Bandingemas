@@ -5,6 +5,7 @@ import { usePrices } from '@/composables/usePrices'
 import { useHistory } from '@/composables/useHistory'
 import { formatRupiah, formatDate } from '@/lib/format'
 import { LOGOS } from '@/lib/logos'
+import { safeExternalUrl } from '@/lib/url'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -170,10 +171,10 @@ const lastUpdated = computed(() => {
 
       <p v-if="lastUpdated" class="mt-2 text-sm text-muted-foreground">
         Pembaruan terakhir {{ formatDate(lastUpdated) }}
-        <template v-if="prices[0]?.urlHomepage">
+        <template v-if="safeExternalUrl(prices[0]?.urlHomepage)">
           <span aria-hidden="true"> · </span>
           <a
-            :href="prices[0].urlHomepage"
+            :href="safeExternalUrl(prices[0]?.urlHomepage)"
             target="_blank"
             rel="noopener noreferrer"
             class="inline-flex items-center gap-1 underline-offset-4 hover:text-foreground hover:underline"

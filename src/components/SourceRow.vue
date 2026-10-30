@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SourceInfo } from '@/api/emas/types'
 import { LOGOS } from '@/lib/logos'
+import { safeExternalUrl } from '@/lib/url'
 import { ExternalLink } from '@lucide/vue'
 
 defineProps<{
@@ -46,8 +47,8 @@ function initials(name: string | undefined): string {
     </RouterLink>
 
     <a
-      v-if="source.urlHomepage"
-      :href="source.urlHomepage"
+      v-if="safeExternalUrl(source.urlHomepage)"
+      :href="safeExternalUrl(source.urlHomepage)"
       target="_blank"
       rel="noopener noreferrer"
       class="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"

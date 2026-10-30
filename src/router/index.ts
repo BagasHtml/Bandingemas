@@ -20,6 +20,11 @@ const router = createRouter({
       component: () => import('../views/WatchlistView.vue'),
     },
     {
+      path: '/saham',
+      name: 'saham',
+      component: () => import('../views/SahamView.vue'),
+    },
+    {
       path: '/berita',
       name: 'news',
       component: () => import('../views/NewsView.vue'),

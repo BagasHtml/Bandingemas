@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { NewsItem } from '@/api/emas/types'
 import { formatDateTime } from '@/lib/format'
+import { safeExternalUrl } from '@/lib/url'
 
 defineProps<{
   item: NewsItem
@@ -21,13 +22,15 @@ defineProps<{
     </p>
     <h2 class="mt-1.5 text-base font-semibold leading-snug">
       <a
-        :href="item.url"
+        v-if="safeExternalUrl(item.url)"
+        :href="safeExternalUrl(item.url)"
         target="_blank"
         rel="noopener noreferrer"
         class="inline-block min-h-11 underline-offset-4 hover:underline"
       >
         {{ item.title }}
       </a>
+      <template v-else>{{ item.title }}</template>
     </h2>
     <p v-if="item.summary" class="mt-1.5 text-sm leading-relaxed text-muted-foreground">
       {{ item.summary }}

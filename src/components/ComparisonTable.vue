@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useComparison, type SpotPrice } from '@/composables/useComparison'
 import { LOGOS } from '@/lib/logos'
 import { formatRupiah } from '@/lib/format'
+import { safeExternalUrl } from '@/lib/url'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -202,13 +203,13 @@ function hasProductType(type: string): boolean {
                     </TableCell>
                     <TableCell class="pr-0 text-right">
                       <Button
-                        v-if="spot.urlHomepage"
+                        v-if="safeExternalUrl(spot.urlHomepage)"
                         as-child
                         variant="ghost"
                         size="icon-sm"
                       >
                         <a
-                          :href="spot.urlHomepage"
+                          :href="safeExternalUrl(spot.urlHomepage)"
                           target="_blank"
                           rel="noopener noreferrer"
                           :aria-label="`Buka situs ${spot.displayName}`"
@@ -301,8 +302,8 @@ function hasProductType(type: string): boolean {
                     <dt class="text-muted-foreground">Situs</dt>
                     <dd class="mt-0.5">
                       <a
-                        v-if="spot.urlHomepage"
-                        :href="spot.urlHomepage"
+                        v-if="safeExternalUrl(spot.urlHomepage)"
+                        :href="safeExternalUrl(spot.urlHomepage)"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="inline-flex min-h-11 items-center font-semibold text-gold-strong underline-offset-4 hover:underline"
