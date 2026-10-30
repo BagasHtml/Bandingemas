@@ -55,9 +55,17 @@ if (localStorage.getItem('theme') === 'dark') {
       <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <RouterLink
           to="/"
-          class="inline-flex min-h-11 shrink-0 items-center text-base font-extrabold tracking-[-0.02em] sm:text-lg"
+          class="inline-flex min-h-11 shrink-0 items-center gap-2.5 text-base font-extrabold tracking-[-0.02em] sm:text-lg"
         >
-          Banding<span class="text-gold-strong">emas</span>
+          <img
+            src="/logos/bandingemas-mark.webp"
+            alt=""
+            width="256"
+            height="187"
+            class="h-9 w-auto"
+            decoding="async"
+          />
+          <span>Banding<span class="text-gold-strong">emas</span></span>
         </RouterLink>
 
         <nav class="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">

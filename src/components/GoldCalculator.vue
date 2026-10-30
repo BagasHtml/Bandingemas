@@ -107,41 +107,28 @@ const altSells = computed(() => sellable.value.slice(1, 3))
 
 <template>
   <section
-    class="on-strong -mx-4 bg-strong px-5 py-10 text-strong-foreground sm:-mx-6 sm:px-10 sm:py-12"
+    class="-mx-4 border-y border-border bg-card px-5 py-10 text-card-foreground sm:-mx-6 sm:px-10 sm:py-12"
     aria-labelledby="kalkulator-title"
   >
     <div class="flex max-w-xl flex-col gap-3">
       <h2 id="kalkulator-title" class="text-xl font-semibold tracking-tight">Kalkulator emas</h2>
-      <p class="text-sm leading-relaxed text-strong-muted">
+      <p class="text-sm leading-relaxed text-muted-foreground">
         Hitung rencana beli, atau anggarkan untung-rugi emas yang sudah kamu pegang, dengan harga
         nyata perantara.
       </p>
     </div>
 
     <Tabs default-value="beli" class="mt-6">
-      <TabsList
-        class="border border-strong-border bg-transparent"
-        aria-label="Mode kalkulator"
-      >
-        <TabsTrigger
-          value="beli"
-          class="text-strong-muted data-[state=active]:text-foreground"
-        >
-          Simulasi beli
-        </TabsTrigger>
-        <TabsTrigger
-          value="jual"
-          class="text-strong-muted data-[state=active]:text-foreground"
-        >
-          Untung-rugi jual
-        </TabsTrigger>
+      <TabsList aria-label="Mode kalkulator">
+        <TabsTrigger value="beli">Simulasi beli</TabsTrigger>
+        <TabsTrigger value="jual">Untung-rugi jual</TabsTrigger>
       </TabsList>
 
       <TabsContent value="beli" class="mt-8">
         <div class="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16">
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
-              <label for="calc-grams" class="text-xs font-medium text-strong-muted">Gramasi</label>
+              <label for="calc-grams" class="text-xs font-medium text-muted-foreground">Gramasi</label>
               <Input
                 id="calc-grams"
                 v-model="buyGrams"
@@ -154,7 +141,7 @@ const altSells = computed(() => sellable.value.slice(1, 3))
               />
             </div>
             <div class="flex flex-col gap-2">
-              <span id="calc-source-label" class="text-xs font-medium text-strong-muted">
+              <span id="calc-source-label" class="text-xs font-medium text-muted-foreground">
                 Acuan harga
               </span>
               <Select v-model="selectedSource">
@@ -178,18 +165,18 @@ const altSells = computed(() => sellable.value.slice(1, 3))
           <div v-if="isLoading" aria-busy="true">
             <span class="sr-only">Memuat kalkulator beli...</span>
             <div class="grid gap-6 sm:grid-cols-3">
-              <Skeleton v-for="i in 3" :key="i" class="h-16 bg-white/10" />
+              <Skeleton v-for="i in 3" :key="i" class="h-16" />
             </div>
           </div>
 
           <div v-else-if="activeSpot" class="flex flex-col gap-6">
-            <dl class="grid gap-6 sm:grid-cols-3 lg:border-l lg:border-strong-border lg:pl-12">
+            <dl class="grid gap-6 sm:grid-cols-3 lg:border-l lg:border-border lg:pl-12">
               <div>
-                <dt class="text-xs text-strong-muted">Total beli</dt>
+                <dt class="text-xs text-muted-foreground">Total beli</dt>
                 <dd class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
                   {{ totalBuy === null ? '-' : formatRupiah(totalBuy) }}
                 </dd>
-                <p class="mt-1 text-xs tabular-nums text-strong-muted">
+                <p class="mt-1 text-xs tabular-nums text-muted-foreground">
                   {{
                     gramCount(buyGrams) === null || totalBuy === null
                       ? 'masukkan gramasi'
@@ -198,34 +185,34 @@ const altSells = computed(() => sellable.value.slice(1, 3))
                 </p>
               </div>
               <div>
-                <dt class="text-xs text-strong-muted">Buyback bersih</dt>
+                <dt class="text-xs text-muted-foreground">Buyback bersih</dt>
                 <dd
                   class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight"
-                  :class="netBuyback === null ? 'text-strong-muted' : 'text-gold'"
+                  :class="netBuyback === null ? 'text-muted-foreground' : 'text-gold-strong'"
                 >
                   {{ netBuyback === null ? 'tidak tersedia' : formatRupiah(netBuyback) }}
                 </dd>
-                <p v-if="netBuyback !== null" class="mt-1 text-xs tabular-nums text-strong-muted">
+                <p v-if="netBuyback !== null" class="mt-1 text-xs tabular-nums text-muted-foreground">
                   {{ gramCount(buyGrams) }} g × {{ formatRupiah(activeSpot.buybackPerGram) }}
                 </p>
               </div>
               <div>
-                <dt class="text-xs text-strong-muted">Selisih</dt>
+                <dt class="text-xs text-muted-foreground">Selisih</dt>
                 <dd class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
                   {{ spreadLoss === null ? '-' : formatRupiah(spreadLoss) }}
                 </dd>
-                <p class="mt-1 text-xs text-strong-muted">perkiraan biaya jual kembali</p>
+                <p class="mt-1 text-xs text-muted-foreground">perkiraan biaya jual kembali</p>
               </div>
             </dl>
 
-            <p class="text-xs leading-relaxed text-strong-muted">
+            <p class="text-xs leading-relaxed text-muted-foreground">
               Berdasarkan harga {{ activeSpot.displayName }} per
               {{ formatDate(activeSpot.recordedDate) }}. Angka riil bisa berbeda karena ongkos buat,
               pajak, dan kebijakan tiap perantara.
             </p>
           </div>
 
-          <p v-else class="text-sm text-strong-muted">
+          <p v-else class="text-sm text-muted-foreground">
             Harga perantara sedang tidak tersedia, kalkulator belum bisa dihitung.
           </p>
         </div>
@@ -235,7 +222,7 @@ const altSells = computed(() => sellable.value.slice(1, 3))
         <div class="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16">
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-2">
-              <label for="calc-held-grams" class="text-xs font-medium text-strong-muted">
+              <label for="calc-held-grams" class="text-xs font-medium text-muted-foreground">
                 Gram emasmu
               </label>
               <Input
@@ -250,7 +237,7 @@ const altSells = computed(() => sellable.value.slice(1, 3))
               />
             </div>
             <div class="flex flex-col gap-2">
-              <label for="calc-held-total" class="text-xs font-medium text-strong-muted">
+              <label for="calc-held-total" class="text-xs font-medium text-muted-foreground">
                 Total pengeluaran beli
               </label>
               <Input
@@ -265,7 +252,7 @@ const altSells = computed(() => sellable.value.slice(1, 3))
               />
             </div>
             <div class="flex flex-col gap-2">
-              <label for="calc-held-cost" class="text-xs font-medium text-strong-muted">
+              <label for="calc-held-cost" class="text-xs font-medium text-muted-foreground">
                 atau harga beli per gram
               </label>
               <Input
@@ -284,56 +271,56 @@ const altSells = computed(() => sellable.value.slice(1, 3))
           <div v-if="isLoading" aria-busy="true">
             <span class="sr-only">Memuat kalkulator untung-rugi...</span>
             <div class="grid gap-6 sm:grid-cols-3">
-              <Skeleton v-for="i in 3" :key="i" class="h-16 bg-white/10" />
+              <Skeleton v-for="i in 3" :key="i" class="h-16" />
             </div>
           </div>
 
           <template v-else>
             <div v-if="bestSell" class="flex flex-col gap-6">
-              <div class="grid gap-6 sm:grid-cols-3 lg:border-l lg:border-strong-border lg:pl-12">
+              <div class="grid gap-6 sm:grid-cols-3 lg:border-l lg:border-border lg:pl-12">
                 <div>
-                  <dt class="text-xs text-strong-muted">Nilai jual terbaik</dt>
+                  <dt class="text-xs text-muted-foreground">Nilai jual terbaik</dt>
                   <dd class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
                     {{ formatRupiah(bestSell.value) }}
                   </dd>
-                  <p class="mt-1 text-xs tabular-nums text-strong-muted">
+                  <p class="mt-1 text-xs tabular-nums text-muted-foreground">
                     {{ heldGramValue }} g × {{ formatRupiah(bestSell.spot.buybackPerGram) }} di
                     {{ bestSell.spot.displayName }}
                   </p>
                 </div>
                 <div>
-                  <dt class="text-xs text-strong-muted">Posisi untung-rugi</dt>
+                  <dt class="text-xs text-muted-foreground">Posisi untung-rugi</dt>
                   <dd
                     class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight"
                     :class="bestSell.pl >= 0 ? 'text-positive' : 'text-negative'"
                   >
                     {{ bestSell.pl >= 0 ? '&#43;' : '-' }}{{ formatRupiah(Math.abs(bestSell.pl)) }}
                   </dd>
-                  <p class="mt-1 text-xs tabular-nums text-strong-muted">
+                  <p class="mt-1 text-xs tabular-nums text-muted-foreground">
                     terhadap {{ formatRupiah(bestSell.costPerGram) }}/g yang kamu bayar
                   </p>
                 </div>
                 <div class="flex flex-col">
-                  <dt class="text-xs text-strong-muted">Buyback lain</dt>
+                  <dt class="text-xs text-muted-foreground">Buyback lain</dt>
                   <ul v-if="altSells.length > 0" class="mt-1.5 flex flex-col gap-1.5">
                     <li
                       v-for="alt in altSells"
                       :key="alt.source"
-                      class="flex items-baseline justify-between gap-3 border-b border-strong-border pb-1.5"
+                      class="flex items-baseline justify-between gap-3 border-b border-border pb-1.5"
                     >
                       <span class="text-xs font-medium">{{ alt.displayName }}</span>
-                      <span class="text-xs tabular-nums text-strong-muted">
+                      <span class="text-xs tabular-nums text-muted-foreground">
                         {{ formatRupiah(alt.buybackPerGram) }}/g
                       </span>
                     </li>
                   </ul>
-                  <span v-else class="mt-1.5 text-xs text-strong-muted">
+                  <span v-else class="mt-1.5 text-xs text-muted-foreground">
                     tidak ada buyback lain yang diketahui
                   </span>
                 </div>
               </div>
 
-              <p class="text-xs leading-relaxed text-strong-muted">
+              <p class="text-xs leading-relaxed text-muted-foreground">
                 Peringatan penting: buyback berlaku di perantara keluaran produknya, jadi pilih
                 berdasarkan ke mana emasmu bisa dikembalikan. Angka belum termasuk pajak transaksi
                 dan biaya cetak. Harga {{ bestSell.spot.displayName }} tercatat
@@ -341,8 +328,8 @@ const altSells = computed(() => sellable.value.slice(1, 3))
               </p>
             </div>
 
-            <div v-else class="grid gap-4 lg:border-l lg:border-strong-border lg:pl-12">
-              <p class="text-sm leading-relaxed text-strong-muted">
+            <div v-else class="grid gap-4 lg:border-l lg:border-border lg:pl-12">
+              <p class="text-sm leading-relaxed text-muted-foreground">
                 {{
                   gramCount(heldGrams) === null
                     ? 'Isi gram emasmu dulu, lalu harga belinya, untuk melihat posisi untung-rugi hari ini.'
@@ -351,7 +338,7 @@ const altSells = computed(() => sellable.value.slice(1, 3))
                       : 'Total pengeluaran atau harga beli per gram belum terisi, posisi belum bisa dihitung.'
                 }}
               </p>
-              <p v-if="topSell" class="text-xs text-strong-muted">
+              <p v-if="topSell" class="text-xs text-muted-foreground">
                 Buyback tertinggi saat ini: {{ topSell.displayName }},
                 {{ formatRupiah(topSell.buybackPerGram) }}/g.
               </p>

@@ -48,11 +48,25 @@ export async function getPriceHistory(
 ): Promise<HistoryResponse> {
   const key = `history:${source}:${params.page ?? 1}:${params.length ?? 20}:${params.weight ?? ''}:${params.material ?? ''}:${params.materialType ?? ''}`
   return cached(key, TTL.history, async () => {
-    const { data } = await client.get<HistoryResponse>(`/api/prices/${source}/history`, { params })
-    if (!data.success) {
-      throw new Error(data.error ?? 'Gagal memuat riwayat harga')
+    try {
+      const { data } = await client.get<HistoryResponse>(`/api/prices/${source}/history`, { params })
+      if (!data.success) {
+        throw new Error(data.error ?? 'Gagal memuat riwayat harga')
+      }
+      return data
+    } catch (err) {
+      // Upstream membalas 500 saat basis data riwayatnya sedang tidak bisa
+      // dibaca. Tampilkan kalimat yang bisa dipahami, bukan pesan Axios.
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 500) {
+          throw new Error('Riwayat harga sedang tidak tersedia dari sumber data')
+        }
+        if (!err.response) {
+          throw new Error('Tidak bisa menghubungi sumber data')
+        }
+      }
+      throw err
     }
-    return data
   })
 }
 

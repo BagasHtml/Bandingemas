@@ -1,4 +1,6 @@
-# Bandingemas
+<p align="center">
+  <img src="docs/bandingemas-logo.webp" alt="Bandingemas" width="260">
+</p>
 
 Bandingemas compares gold and silver prices from Indonesian dealers in one place. It reads live quotes from Antam, Pegadaian, BSI, Treasury, and other official sellers, normalizes them per gram, and sorts them from cheapest to most expensive.
 

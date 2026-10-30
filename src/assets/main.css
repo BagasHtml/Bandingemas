@@ -58,7 +58,7 @@
   --positive-surface: #ecfdf5;
   --negative: #b91c1c;
   --negative-surface: #fef2f2;
-  /* Permukaan kontras untuk ticker dan kalkulator; tetap gelap di kedua tema. */
+  /* Permukaan kontras untuk ticker harga; tetap gelap di kedua tema. */
   --strong: #14171a;
   --strong-foreground: #f9fafb;
   --strong-muted: #a1a7b0;
@@ -197,22 +197,6 @@
   :where(a, button, [role="button"], input, select, textarea):focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
-  }
-}
-
-@layer components {
-  /* Permukaan gelap: teks, border, dan ikon kontrol tetap terbaca di kedua tema. */
-  .on-strong [data-slot="input"],
-  .on-strong [data-slot="select-trigger"] {
-    border-color: var(--strong-border);
-    background: transparent;
-    color: var(--strong-foreground);
-  }
-  .on-strong [data-slot="input"]::placeholder {
-    color: var(--strong-muted);
-  }
-  .on-strong [data-slot="select-trigger"] svg {
-    color: var(--strong-muted);
   }
 }
 
