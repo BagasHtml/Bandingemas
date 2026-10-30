@@ -20,7 +20,6 @@ const mobileOpen = ref(false)
 const links = [
   { to: '/', label: 'Harga' },
   { to: '/pantauan', label: 'Pantauan' },
-  { to: '/saham', label: 'Saham' },
   { to: '/berita', label: 'Berita' },
 ]
 

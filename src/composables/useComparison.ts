@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { getPrices } from '@/api/emas/client'
 import { hasFresh } from '@/api/cache'
+import { median } from '@/lib/stats'
 import type { PriceItem } from '@/api/emas/types'
 
 // Harga spot satu material dari satu sumber, dinormalisasi per gram
@@ -159,11 +160,21 @@ async function fetchComparison() {
 }
 
 function spotsFor(material: string): SpotPrice[] {
-  return entries.value
+  const spots = entries.value
     .filter((entry) => entry.status === 'ok' && entry.spots)
     .flatMap((entry) => entry.spots as SpotPrice[])
     .filter((spot) => spot.material === material)
     .sort((a, b) => a.pricePerGram - b.pricePerGram)
+
+  // Harga yang jauh dari median lintas sumber adalah kutipan basi/rusak
+  // (mis. Sakumas Rp 979.278 saat sumber lain Rp 2,4 juta). Jangan biarkan
+  // satu angka seperti itu menentukan "termurah" di hero, ticker, atau tabel.
+  const mid = median(spots.map((spot) => spot.pricePerGram))
+  if (mid === null) return spots
+  const plausible = spots.filter(
+    (spot) => spot.pricePerGram >= mid * 0.5 && spot.pricePerGram <= mid * 1.5,
+  )
+  return plausible.length >= 2 ? plausible : spots
 }
 
 export function useComparison() {

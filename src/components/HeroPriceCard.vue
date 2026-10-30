@@ -50,6 +50,15 @@ const sparklineStats = computed(() => {
   return { min: Math.min(...prices), max: Math.max(...prices) }
 })
 
+// Skala mengikuti rentang 7 hari; sumbu yang mulai dari nol membuat
+// pergerakan kecil tampak datar.
+const sparklineDomain = computed<[number, number]>(() => {
+  const stats = sparklineStats.value
+  if (!stats) return [0, 1]
+  const pad = Math.max((stats.max - stats.min) * 0.15, stats.max * 0.002)
+  return [stats.min - pad, stats.max + pad]
+})
+
 const sparklineFill = 'url(#gold-fade-hero)'
 
 const x = (_: unknown, i: number) => i
@@ -175,7 +184,12 @@ fetchComparison()
               </defs>
             </svg>
             <div class="h-24">
-              <VisXYContainer :data="sparklineData" :style="{ height: '100%' }" :padding="{ top: 4 }">
+              <VisXYContainer
+                :data="sparklineData"
+                :y-domain="sparklineDomain"
+                :style="{ height: '100%' }"
+                :padding="{ top: 4 }"
+              >
                 <VisArea :x="x" :y="y" :color="sparklineFill" />
                 <VisLine :x="x" :y="y" color="var(--gold-strong)" :stroke-width="1.5" />
               </VisXYContainer>

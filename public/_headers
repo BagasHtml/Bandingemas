@@ -1,6 +1,4 @@
 # Header keamanan Cloudflare Pages. File ini disalin apa adanya ke dist/.
-# Jika VITE_SAHAM_API_URL menunjuk origin eksternal, tambahkan origin itu ke
-# direktif connect-src; default produksi memakai proxy same-origin /api/*.
 
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://logam-mulia-api.iamutaki.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests

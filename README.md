@@ -1,96 +1,84 @@
 # Bandingemas
 
-Portal pemantau dan komparasi harga emas komoditas Indonesia: harga perantara
-resmi (Antam, Pegadaian, BSI, Treasury, dll), riwayat harga, kalkulator simulasi,
-dan berita pasar.
+Bandingemas compares gold and silver prices from Indonesian dealers in one place. It reads live quotes from Antam, Pegadaian, BSI, Treasury, and other official sellers, normalizes them per gram, and sorts them from cheapest to most expensive.
 
-Dibangun dengan Vue 3 + TypeScript + Vite, shadcn-vue (Tailwind CSS v4),
-dan data dari [Logam Mulia API](https://logam-mulia-api.iamutaki.workers.dev/api/docs).
+The prices come from [Logam Mulia API](https://logam-mulia-api.iamutaki.workers.dev/api/docs). The interface is built with Vue 3, TypeScript, Vite, shadcn-vue, and Tailwind CSS v4.
 
-Sistem desain ada di [DESIGN.md](DESIGN.md): netral bersih dengan aksen emas
-taktis, Inter + angka tabular, komponen fungsional tanpa gimmick visual.
+![Bandingemas home page](docs/screenshots/home.webp)
 
-Logo perantara di `public/logos/` diunduh langsung dari situs resmi
-masing-masing (ulangi dengan `node scripts/fetch-logos.mjs`; pemetaan ada di
-`src/lib/logos.ts`, fallback inisial bila logo tidak tersedia).
+## Features
 
-## Fitur
+- **Market ticker** — per-gram prices from the eight cheapest dealers, visible on every page.
+- **Today's lowest price** — the cheapest dealer, quick gram chips from 0.5 g to 100 g, the spread between dealers, the 30-day change, and a 7-day sparkline.
+- **Comparison table** — buy and buyback price per gram with the spread in rupiah and percent, for gold and silver.
+- **Price calculator** — purchase total, net buyback, and liquidation gap for a selected dealer, in buy-simulation and sell-profit modes.
+- **Price history** — a 30-day chart for the cheapest source, plus per-product history on each source page.
+- **Market estimate** — the median per-gram price across dealers, with a distribution chart that keeps extreme quotes from pulling the number around.
+- **Watchlist** — price targets above or below current levels, stored in the browser.
+- **Source directory** — every monitored dealer, with a detail page per source.
+- **News** — gold and investment headlines from Investor.id.
+- **Loading and failure states** — skeleton screens while data loads, source-level errors with retry, and cached data when a request fails.
+- **Light and dark themes** — saved in localStorage.
 
-- **Bar pasar (ticker)**: bar gelap sticky di atas, harga per gram dari sumber
-  yang sehat, data nyata dari API
-- **Hero price card**: harga emas terendah hari ini, chip gramasi interaktif
-  (0.5g sampai 100g) untuk estimasi total beli, metrik selisih antar perantara,
-  perubahan 30 hari, dan sparkline 7 hari
-- **Perbandingan antar perantara**: tabel harga beli/buyback per gram + spread
-  (Rp & %), filter material emas/perak, diurutkan dari termurah
-- **Kalkulator simulasi**: kontainer gelap fokus, estimasi total beli, proyeksi
-  buyback bersih, dan selisih likuidasi dari harga sumber pilihan
-- **Indeks perantara**: grid direktori semua sumber terpantau
-- **Detail sumber**: tabel harga per produk, filter material, grafik riwayat harga
-- **Berita**: kabar emas & investasi dari Investor.id
-- **Estimasi harga saat ini**: median harga per gram antar perantara dengan
-  bar chart distribusi, tahan terhadap harga ekstrem dari satu-dua sumber
-- **Cache & throttling**: cache TTL di sisi klien (harga 60 detik, riwayat dan
-  berita 5 menit, daftar sumber 10 menit), dedup request in-flight, jeda
-  antar request 250 ms, dan fallback data kadaluarsa saat upstream gagal
-- **Skeleton loading**: kerangka animasi yang menyerupai konten asli di semua
-  bagian yang memuat data, menghormati `prefers-reduced-motion`
-- **Mode terang/gelap**: toggle tersimpan di localStorage, keduanya berfungsi penuh
+## Screenshots
 
-## Menjalankan
+The comparison table shows buy and buyback prices per gram, sorted cheapest first.
+
+![Comparison table](docs/screenshots/comparison.webp)
+
+The calculator estimates a purchase or a sale using one dealer's quote.
+
+![Gold calculator](docs/screenshots/calculator.webp)
+
+The 30-day chart follows the cheapest dealer at the time of the request.
+
+![30-day price history](docs/screenshots/trend.webp)
+
+The mobile layout keeps the hero, gram chips, and sparkline above the fold.
+
+<img src="docs/screenshots/mobile.webp" alt="Mobile layout" width="390">
+
+## Running locally
 
 ```sh
 bun install
-bun run dev      # server pengembangan
-bun run build    # build produksi + type-check
+bun run dev      # development server
+bun run build    # type-check and production build
 bun run lint     # oxlint + eslint
 bun run test:unit
 ```
 
-## Deploy (Cloudflare Pages)
+## Deploying to Cloudflare Pages
 
-Build statis ke `dist/`:
+Build the static site into `dist/`:
 
 ```sh
 bun run build
 ```
 
-Di Cloudflare Pages, atur build command `bun run build` dan output directory
-`dist`. Cloudflare mengompresi HTML/JS/CSS dengan Brotli/Gzip otomatis.
+In Cloudflare Pages, set the build command to `bun run build` and the output directory to `dist`. Cloudflare compresses HTML, JS, and CSS with Brotli or Gzip automatically.
 
-Fitur saham memakai proxy same-origin di `functions/api`: `/api/companies`
-dan `/api/stock/:ticker` mengambil `/api/universe` dan `/api/history` dari
-`ihsg.midoriresearch.com`, lalu dipetakan ke tipe client. Tidak ada environment
-variable yang wajib. Isi `VITE_SAHAM_API_URL` hanya bila ingin memakai API
-saham lain; origin eksternal itu harus ditambahkan ke direktif `connect-src`
-di `public/_headers`.
+`public/_headers` sets the CSP, HSTS, and asset cache rules. `public/_redirects` provides the SPA fallback for vue-router paths.
 
-`public/_headers` mengatur CSP, HSTS, dan cache aset, `public/_redirects`
-menjadi fallback SPA untuk rute vue-router, dan `public/_routes.json` membatasi
-Pages Functions hanya pada `/api/*`.
-
-`vite preview` tidak menjalankan Pages Functions. Untuk menguji proxy secara
-lokal, jalankan `npx wrangler pages dev dist`.
-
-## Struktur
+## Project structure
 
 ```
-functions/        # proxy API saham (Cloudflare Pages Functions)
 src/
-├── api/          # Client API bertipe (types.ts, client.ts)
-├── components/   # TickerBar, HeroPriceCard, ComparisonTable, GoldCalculator, dll
-├── composables/  # useSources, usePrices, useHistory, useNews, useComparison
-├── lib/          # Helper format (Rupiah, persen, tanggal)
-├── views/        # HomeView, SourceDetailView, NewsView
+├── api/          # typed API client and cache
+├── components/   # TickerBar, HeroPriceCard, ComparisonTable, GoldCalculator, charts
+├── composables/  # useSources, usePrices, useComparison, useWatchlist
+├── lib/          # formatting, statistics, URL and logo helpers
+├── views/        # HomeView, SourceDetailView, WatchlistView, NewsView
 └── router/       # vue-router
 ```
 
-## Catatan data
+The visual direction is documented in [DESIGN.md](DESIGN.md). Dealer logos in `public/logos/` are downloaded from each official site; rerun `node scripts/fetch-logos.mjs` to refresh them. The mapping lives in `src/lib/logos.ts`, with initials as the fallback.
 
-- Harga spot dinormalisasi ke per gram dari berat terdekat 1 gram tiap sumber.
-- Request perbandingan dikirim bertahap (250ms) karena upstream membatasi burst
-  paralel.
-- Kolom status stok dan kurs XAU/USD tidak ditampilkan karena API tidak
-  menyediakan datanya; hanya kolom dengan data nyata yang dipakai.
-- Beberapa sumber bisa gagal sesekali; aplikasi menampilkan error per sumber
-  dengan opsi coba lagi, dan halaman tetap berfungsi dari sumber yang sehat.
+## Data notes
+
+- Prices are normalized per gram using the quote closest to 1 gram from each source. Quotes where buyback exceeds the selling price are rejected as scraping errors.
+- Quotes that fall outside 0.5–1.5× the cross-source median are ignored when choosing the cheapest dealer. A source stuck on an old price cannot win the comparison.
+- Requests are staggered by 250 ms because the upstream API limits parallel bursts.
+- The client caches prices for 60 seconds, history and news for 5 minutes, and the source list for 10 minutes. Duplicate in-flight requests share one network call, and expired data is served when a refresh fails.
+- Some sources fail intermittently. The app shows the error for that source and keeps working with the rest.
+- The history chart depends on the upstream API's database. When that endpoint is unavailable, the chart shows a retry action instead of an empty graph.

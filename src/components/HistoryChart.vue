@@ -5,7 +5,7 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from '@/components/ui/chart'
-import { VisArea, VisLine, VisXYContainer } from '@unovis/vue'
+import { VisArea, VisAxis, VisLine, VisXYContainer } from '@unovis/vue'
 import { formatRupiah } from '@/lib/format'
 import { computed } from 'vue'
 
@@ -38,6 +38,18 @@ const y = (point: ChartPoint) => point.price
 const compactFormatter = new Intl.NumberFormat('id-ID', {
   notation: 'compact',
   compactDisplay: 'short',
+  maximumFractionDigits: 2,
+})
+
+// Domain Y mengikuti rentang harga itu sendiri. Tanpa ini sumbu mulai dari 0
+// dan gerak harga beberapa persen terlihat seperti garis datar.
+const yDomain = computed<[number, number]>(() => {
+  const prices = props.data.map((point) => point.price)
+  if (prices.length === 0) return [0, 1]
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const pad = Math.max((max - min) * 0.15, max * 0.002)
+  return [min - pad, max + pad]
 })
 
 function tickFormatX(value: number): string {
@@ -71,8 +83,8 @@ function tooltipTemplate(point: ChartPoint): string {
       </defs>
     </svg>
 
-    <ChartContainer :config="chartConfig" class="h-72 w-full">
-      <VisXYContainer :data="props.data" :style="{ height: '100%' }">
+    <ChartContainer :config="chartConfig" class="aspect-auto h-72 w-full">
+      <VisXYContainer :data="props.data" :y-domain="yDomain" :style="{ height: '100%' }">
         <ChartCrosshair template="y" color="rgba(0, 0, 0, 0.15)" />
         <VisArea :x="x" :y="y" :color="areaFill" />
         <VisLine :x="x" :y="y" color="var(--color-price)" :stroke-width="1.5" />
@@ -82,7 +94,6 @@ function tooltipTemplate(point: ChartPoint): string {
           :y="y"
           :tick-format="tickFormatY"
           :num-ticks="5"
-          :domain="[undefined, undefined]"
         />
         <ChartTooltip :template="tooltipTemplate" />
       </VisXYContainer>
