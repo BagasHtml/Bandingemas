@@ -21,6 +21,7 @@ const links = [
   { to: '/', label: 'Harga' },
   { to: '/pantauan', label: 'Pantauan' },
   { to: '/berita', label: 'Berita' },
+  { to: '/faq', label: 'FAQ' },
 ]
 
 function isActive(to: string): boolean {
@@ -144,7 +145,23 @@ if (localStorage.getItem('theme') === 'dark') {
       <div
         class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:px-6"
       >
-        <p>Data disediakan oleh Logam Mulia API. Harga di-cache di perangkat selama satu menit.</p>
+        <p>
+          Data disediakan oleh
+          <a
+            href="https://github.com/iamutaki/logam-mulia-api"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-medium text-foreground underline-offset-4 hover:underline"
+            >Logam Mulia API</a
+          >, proyek open source oleh
+          <a
+            href="https://github.com/iamutaki"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-medium text-foreground underline-offset-4 hover:underline"
+            >@iamutaki</a
+          >. Harga di-cache di perangkat selama satu menit.
+        </p>
         <p>Harga bersifat informasi, bukan ajakan investasi.</p>
       </div>
     </footer>
