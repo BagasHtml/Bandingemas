@@ -10,6 +10,8 @@ export interface SpotPrice {
   displayName: string
   material: string
   materialType: string
+  // Gramasi baris yang dipilih; dipakai lagi saat mengambil riwayat harga
+  weight: number
   pricePerGram: number
   buybackPerGram: number | null
   recordedDate: string
@@ -76,6 +78,7 @@ function pickSpot(items: PriceItem[], source: string, material: string): SpotPri
     displayName: best.displayName ?? source,
     material,
     materialType: best.materialType,
+    weight: best.weight,
     pricePerGram: Math.round(best.sellPrice / best.weight),
     buybackPerGram:
       best.buybackPrice && best.buybackPrice > 0
