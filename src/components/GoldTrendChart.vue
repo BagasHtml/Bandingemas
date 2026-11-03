@@ -47,7 +47,7 @@ const stats = computed(() => {
 
     <div v-if="isLoading" class="mt-6">
       <span class="sr-only">Memuat grafik tren 30 hari...</span>
-      <Skeleton class="h-72 w-full" />
+      <Skeleton class="h-60 w-full sm:h-72" />
       <div class="mt-3 flex gap-8">
         <Skeleton v-for="i in 3" :key="i" class="h-8 w-24" />
       </div>
@@ -66,7 +66,7 @@ const stats = computed(() => {
         <HistoryChart :data="chartData" grad-id="gold-trend-home" />
       </div>
 
-      <dl class="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+      <dl class="mt-4 flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-10">
         <div>
           <dt class="text-xs text-muted-foreground">30 hari terendah</dt>
           <dd class="mt-1 text-sm font-semibold tabular-nums">{{ formatRupiah(stats.min) }}</dd>

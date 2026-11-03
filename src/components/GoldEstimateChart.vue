@@ -91,7 +91,7 @@ const lastRecorded = computed(() => goldSpots.value[0]?.recordedDate ?? null)
               :style="{ width: widthOf(spot.pricePerGram) }"
             />
           </span>
-          <span class="w-16 shrink-0 text-right text-xs font-medium tabular-nums">
+          <span class="w-20 shrink-0 text-right text-xs font-medium tabular-nums">
             {{ formatRupiah(spot.pricePerGram) }}
           </span>
         </RouterLink>

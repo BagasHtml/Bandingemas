@@ -15,22 +15,22 @@ import { Button } from '@/components/ui/button'
       <nav aria-label="Isi halaman" class="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm">
         <a
           href="#mulai"
-          class="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          class="inline-flex min-h-11 items-center font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >Mulai cepat</a
         >
         <a
           href="#membaca-angka"
-          class="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          class="inline-flex min-h-11 items-center font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >Membaca angka</a
         >
         <a
           href="#faq"
-          class="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          class="inline-flex min-h-11 items-center font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >Pertanyaan umum</a
         >
         <a
           href="#sumber"
-          class="font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          class="inline-flex min-h-11 items-center font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >Sumber data</a
         >
       </nav>

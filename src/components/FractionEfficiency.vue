@@ -90,30 +90,32 @@ const premiumFormatter = new Intl.NumberFormat('id-ID', {
       <li
         v-for="row in rows"
         :key="row.weight"
-        class="flex min-h-11 items-center gap-2 border-b py-2 last:border-b-0"
+        class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b py-3 last:border-b-0 sm:min-h-11 sm:flex-nowrap sm:justify-start sm:py-2"
         :class="row.premium === 0 ? 'bg-gold-surface' : ''"
       >
-        <span class="w-14 shrink-0 text-sm font-semibold tabular-nums">
+        <span class="order-1 w-14 shrink-0 text-sm font-semibold tabular-nums sm:order-3">
           {{ weightFormatter.format(row.weight) }} g
         </span>
         <RouterLink
           :to="`/sumber/${row.source}`"
-          class="min-w-0 flex-1 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
+          class="order-4 w-full min-w-0 truncate text-xs text-muted-foreground transition-colors hover:text-foreground sm:order-1 sm:w-auto sm:flex-1"
         >
           {{ row.sourceName }}
           <span class="md:hidden"> ({{ row.count }} perantara)</span>
         </RouterLink>
         <span
           v-if="row.count > 1"
-          class="hidden shrink-0 text-xs text-muted-foreground md:inline"
+          class="order-5 hidden shrink-0 text-xs text-muted-foreground sm:order-2 md:inline"
         >
           {{ row.count }} perantara
         </span>
-        <span class="w-24 shrink-0 text-right text-sm font-semibold tabular-nums">
+        <span
+          class="order-2 w-24 shrink-0 text-right text-sm font-semibold tabular-nums sm:order-4"
+        >
           {{ formatRupiah(row.pricePerGram) }}/g
         </span>
         <span
-          class="w-14 shrink-0 text-right text-xs tabular-nums"
+          class="order-3 w-14 shrink-0 text-right text-xs tabular-nums sm:order-5"
           :class="row.premium === 0 ? 'text-gold-strong' : 'text-muted-foreground'"
         >
           {{ row.premium === 0 ? 'termurah' : `&#43;${premiumFormatter.format(row.premium)}%` }}

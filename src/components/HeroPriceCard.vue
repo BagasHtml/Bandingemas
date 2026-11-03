@@ -65,7 +65,7 @@ fetchComparison()
     <template v-else-if="lowest">
       <div class="mt-3 min-w-0">
         <p
-          class="text-[clamp(2.6rem,7vw,4.5rem)] font-extrabold leading-[1.05] tracking-[-0.035em] tabular-nums text-gold-strong"
+          class="text-[clamp(2.25rem,8vw,4.5rem)] font-extrabold leading-[1.05] tracking-[-0.035em] tabular-nums text-gold-strong"
         >
           {{ formatRupiah(lowest.pricePerGram) }}
           <span class="text-base font-semibold tracking-normal text-muted-foreground sm:text-lg">

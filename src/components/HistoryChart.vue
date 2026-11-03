@@ -83,7 +83,7 @@ function tooltipTemplate(point: ChartPoint): string {
       </defs>
     </svg>
 
-    <ChartContainer :config="chartConfig" class="aspect-auto h-72 w-full">
+    <ChartContainer :config="chartConfig" class="aspect-auto h-60 w-full sm:h-72">
       <VisXYContainer :data="props.data" :y-domain="yDomain" :style="{ height: '100%' }">
         <ChartCrosshair template="y" color="rgba(0, 0, 0, 0.15)" />
         <VisArea :x="x" :y="y" :color="areaFill" />

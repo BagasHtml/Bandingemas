@@ -235,47 +235,70 @@ const lastUpdated = computed(() => {
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
-                Produk
-              </TableHead>
-              <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
-                Berat
-              </TableHead>
-              <TableHead
-                scope="col"
-                class="h-9 text-right text-xs font-medium text-muted-foreground"
+        <div class="hidden sm:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
+                  Produk
+                </TableHead>
+                <TableHead scope="col" class="h-9 text-xs font-medium text-muted-foreground">
+                  Berat
+                </TableHead>
+                <TableHead
+                  scope="col"
+                  class="h-9 text-right text-xs font-medium text-muted-foreground"
+                >
+                  Harga jual
+                </TableHead>
+                <TableHead
+                  scope="col"
+                  class="h-9 text-right text-xs font-medium text-muted-foreground"
+                >
+                  Buyback
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow
+                v-for="item in filteredPrices"
+                :key="item.lineKey || item.materialType + item.weight"
               >
-                Harga jual
-              </TableHead>
-              <TableHead
-                scope="col"
-                class="h-9 text-right text-xs font-medium text-muted-foreground"
-              >
-                Buyback
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow
-              v-for="item in filteredPrices"
-              :key="item.lineKey || item.materialType + item.weight"
-            >
-              <TableCell class="font-medium">{{ typeLabel(item) }}</TableCell>
-              <TableCell class="tabular-nums text-muted-foreground">
+                <TableCell class="font-medium">{{ typeLabel(item) }}</TableCell>
+                <TableCell class="tabular-nums text-muted-foreground">
+                  {{ item.weight }} {{ item.weightUnit }}
+                </TableCell>
+                <TableCell class="text-right font-semibold tabular-nums">
+                  {{ formatRupiah(item.sellPrice) }}
+                </TableCell>
+                <TableCell class="text-right tabular-nums text-muted-foreground">
+                  {{ formatRupiah(item.buybackPrice) }}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        <ul class="divide-y sm:hidden" aria-label="Daftar harga produk">
+          <li
+            v-for="item in filteredPrices"
+            :key="item.lineKey || item.materialType + item.weight"
+            class="flex items-start justify-between gap-4 py-3"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium">{{ typeLabel(item) }}</p>
+              <p class="mt-0.5 text-xs tabular-nums text-muted-foreground">
                 {{ item.weight }} {{ item.weightUnit }}
-              </TableCell>
-              <TableCell class="text-right font-semibold tabular-nums">
-                {{ formatRupiah(item.sellPrice) }}
-              </TableCell>
-              <TableCell class="text-right tabular-nums text-muted-foreground">
-                {{ formatRupiah(item.buybackPrice) }}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+              </p>
+            </div>
+            <div class="shrink-0 text-right">
+              <p class="text-sm font-semibold tabular-nums">{{ formatRupiah(item.sellPrice) }}</p>
+              <p class="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                buyback {{ formatRupiah(item.buybackPrice) }}
+              </p>
+            </div>
+          </li>
+        </ul>
       </section>
 
       <section aria-labelledby="riwayat-title" class="flex flex-col gap-4">
@@ -289,7 +312,7 @@ const lastUpdated = computed(() => {
 
           <Select v-if="products.length > 1" v-model="selectedProduct">
             <SelectTrigger
-              class="w-60 data-[size=default]:h-11 sm:data-[size=default]:h-9"
+              class="w-full data-[size=default]:h-11 sm:w-60 sm:data-[size=default]:h-9"
               aria-label="Pilih produk"
             >
               <SelectValue placeholder="Produk otomatis" />
@@ -310,7 +333,7 @@ const lastUpdated = computed(() => {
 
         <div v-if="historyLoading" aria-busy="true" class="py-2">
           <span class="sr-only">Memuat riwayat harga...</span>
-          <Skeleton class="h-72 w-full rounded-none" />
+          <Skeleton class="h-60 w-full rounded-none sm:h-72" />
         </div>
         <p v-else-if="chartData.length < 2" class="py-8 text-sm text-muted-foreground">
           Data riwayat belum cukup untuk digambarkan. Grafik muncul setelah sumber mencatat harga

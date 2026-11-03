@@ -103,12 +103,17 @@ if (localStorage.getItem('theme') === 'dark') {
 
           <Sheet v-model:open="mobileOpen">
             <SheetTrigger as-child>
-              <Button variant="outline" size="sm" class="h-11 gap-2 md:hidden">
-                <Menu />
-                Menu
+              <Button
+                variant="outline"
+                size="sm"
+                class="h-11 min-w-11 gap-2 px-2.5 md:hidden"
+                aria-label="Buka menu navigasi"
+              >
+                <Menu aria-hidden="true" />
+                <span class="hidden min-[360px]:inline">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" class="w-72">
+            <SheetContent side="right" class="w-72 max-w-[80vw]">
               <SheetHeader>
                 <SheetTitle>Navigasi</SheetTitle>
               </SheetHeader>
